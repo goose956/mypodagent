@@ -1,0 +1,48 @@
+Failed to load resource: the server responded with a status of 500 ()Understand this error
+index-B27KSBbf.js:1028 Failed to check generation status: Error: Status check failed: 500
+    at P (index-B27KSBbf.js:1028:1701)
+P @ index-B27KSBbf.js:1028Understand this error
+api/chat/image-generation-status/3ff017cf9ebaa177fc888a71aa92a977?model=4o-images:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+index-B27KSBbf.js:1028 Failed to check generation status: Error: Status check failed: 500
+    at P (index-B27KSBbf.js:1028:1701)
+P @ index-B27KSBbf.js:1028Understand this error
+api/chat/image-generation-status/3ff017cf9ebaa177fc888a71aa92a977?model=4o-images:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+index-B27KSBbf.js:1028 Failed to check generation status: Error: Status check failed: 500
+    at P (index-B27KSBbf.js:1028:1701)
+P @ index-B27KSBbf.js:1028Understand this error
+api/chat/image-generation-status/3ff017cf9ebaa177fc888a71aa92a977?model=4o-images:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+index-B27KSBbf.js:1028 Failed to check generation status: Error: Status check failed: 500
+    at P (index-B27KSBbf.js:1028:1701)
+P @ index-B27KSBbf.js:1028Understand this error
+index-B27KSBbf.js:477 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ index-B27KSBbf.js:477Understand this warning
+index-B27KSBbf.js:1028 Progress update: Object
+index-B27KSBbf.js:1028 Progress update: Object
+index-B27KSBbf.js:1028 Progress update: Object
+index-B27KSBbf.js:1028 Progress update: Object
+api/chat/image-generation-status/12aa2ee95c9ee15e35e38e367f937bf2?model=4o-images:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+index-B27KSBbf.js:1028 Failed to check generation status: Error: Status check failed: 500
+    at P (index-B27KSBbf.js:1028:1701)
+P @ index-B27KSBbf.js:1028Understand this error
+index-B27KSBbf.js:1028 Progress update: Object
+api/chat/image-generation-status/12aa2ee95c9ee15e35e38e367f937bf2?model=4o-images:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+index-B27KSBbf.js:1028 Failed to check generation status: Error: Status check failed: 500
+    at P (index-B27KSBbf.js:1028:1701)
+P @ index-B27KSBbf.js:1028Understand this error
+api/chat/image-generation-status/12aa2ee95c9ee15e35e38e367f937bf2?model=4o-images:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+index-B27KSBbf.js:1028 Failed to check generation status: Error: Status check failed: 500
+    at P (index-B27KSBbf.js:1028:1701)
+P @ index-B27KSBbf.js:1028Understand this error
+api/chat/image-generation-status/12aa2ee95c9ee15e35e38e367f937bf2?model=4o-images:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+index-B27KSBbf.js:1028 Failed to check generation status: Error: Status check failed: 500
+    at P (index-B27KSBbf.js:1028:1701)
+P @ index-B27KSBbf.js:1028Understand this error
+api/chat/image-generation-status/12aa2ee95c9ee15e35e38e367f937bf2?model=4o-images:1  Failed to load resource: the server responded with a status of 500 ()Understand this error
+index-B27KSBbf.js:1028 Failed to check generation status: Error: Status check failed: 500
+    at P (index-B27KSBbf.js:1028:1701)
+P @ index-B27KSBbf.js:1028Understand this error
+index-B27KSBbf.js:1028 Auto-select check: Object
+index-B27KSBbf.js:1028 Auto-select check: Object
+5index-B27KSBbf.js:477 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ index-B27KSBbf.js:477Understand this warning
+dashboard:1  Failed to load resource: the server responded with a status of 404 ()

@@ -1,0 +1,137 @@
+Overview
+A tool for POD (Print-on-Demand) entrepreneurs. Users upload product screenshots from Etsy or Amazon, AI analyzes WHY products sell, extracts specific niches, and generates validated product ideas with market scores.
+
+Feature 1: Screenshot Upload & Analysis
+Input:
+
+Drag-and-drop or click to upload product screenshot
+Accepts JPG, PNG, WebP images
+Shows image preview with remove button
+AI Analysis Output:
+
+Product Title - extracted from screenshot
+Platform Detection - Etsy or Amazon
+Specific Niche - ultra-specific (e.g., "cockapoo owners" not "dogs", "retired nurses who golf" not "nurses")
+Why It Sells:
+Sales mechanics (what makes it sell)
+Emotional hooks (feelings it triggers)
+Target buyer profile
+Design analysis
+What NOT To Do - common mistakes to avoid
+Feature 2: Product Idea Generator
+Filter Options:
+
+Niche Mode: Same niche OR different/related niche
+Custom Niche: Text input to specify target niche
+Idea Count: Slider 1-10 ideas
+Product Type: T-shirt, Mug, Hoodie, Poster, Phone Case, Tote Bag, Sticker, Canvas, Pillow, Blanket
+English Variant: US or UK toggle
+Personalization Mode: Toggle for name placeholders like "[NAME]'s Favorite..."
+Each Generated Idea Contains:
+
+Product name
+3 marketing slogans
+AI image prompt (for Midjourney/DALL-E)
+Validation Score:
+Market Saturation (1-10)
+Niche Longevity (1-10)
+Emotional Pull (1-10)
+Overall Score
+Risk Label: "Safe Evergreen" | "Trend Ride" | "High Risk High Reward"
+Reasoning explanation
+Niche Expansion Paths (3 suggestions):
+
+Expansion path name
+Buyer psychology explanation
+3 product angle ideas
+Feature 3: Export Options
+Copy individual image prompts to clipboard
+Checkbox to select multiple ideas
+Download selected ideas as text file
+Bulk copy all selected prompts
+Tech Requirements
+AI:
+
+OpenAI GPT-4o Vision for screenshot analysis
+OpenAI GPT-4o-mini for idea generation (cost-effective)
+Backend Endpoints:
+
+POST /api/analyze-screenshot - Upload image, returns analysis
+POST /api/generate-ideas - Takes analysis + filters, returns ideas
+Request/Response Examples:
+
+POST /api/analyze-screenshot
+Body: FormData with "screenshot" file
+Response:
+{
+  "source": "etsy",
+  "title": "Cockapoo Mom Tumbler",
+  "specificNiche": "cockapoo dog owners",
+  "whyItSells": {
+    "mechanics": ["breed-specific targeting", "gift appeal"],
+    "emotionalHooks": ["pet parent pride", "identity expression"],
+    "targetBuyer": "Female cockapoo owners 30-55, gift buyers",
+    "designAnalysis": "Clean typography, cute dog illustration"
+  },
+  "whatNotToDo": ["Generic 'dog lover' messaging", "Cluttered designs"]
+}
+POST /api/generate-ideas
+Body: {
+  "originalProduct": { title, specificNiche, whyItSells },
+  "nicheMode": "same" | "different",
+  "customNiche": "optional string",
+  "ideaCount": 5,
+  "productType": "mug",
+  "englishVariant": "US" | "UK",
+  "personalizedOnly": false
+}
+Response:
+{
+  "targetNiche": "cockapoo owners",
+  "productType": "mug",
+  "ideas": [
+    {
+      "name": "Cockapoo Mom Fuel Mug",
+      "slogans": ["...", "...", "..."],
+      "imagePrompt": "...",
+      "validation": {
+        "marketSaturation": 4,
+        "nicheLongevity": 8,
+        "emotionalPull": 9,
+        "overallScore": 7.5,
+        "riskCategory": "Safe Evergreen",
+        "reasoning": "..."
+      }
+    }
+  ],
+  "nicheExpansion": [
+    {
+      "path": "Doodle breed owners",
+      "buyerPsychology": "...",
+      "productAngles": ["...", "...", "..."]
+    }
+  ]
+}
+UI Components
+Upload Area - Dashed border, drag-drop zone, file input
+Image Preview - Thumbnail with X button to remove
+Analyze Button - Primary action, shows loading spinner
+Results Card - Collapsible sections for each analysis part
+Idea Generator Panel - Appears after analysis, contains all filters
+Generate Button - Secondary action with loading state
+Ideas Grid - Cards with checkbox, copy button, expandable details
+Export Bar - Shows selected count, download and bulk copy buttons
+Key AI Instructions
+When analyzing screenshots, the AI should:
+
+Extract ULTRA-SPECIFIC niches (breed, profession, hobby combinations)
+Identify emotional triggers that drive purchases
+Explain the psychology of why someone would buy this
+Warn about generic approaches that won't work
+When generating ideas, the AI should:
+
+Create unique, non-obvious product concepts
+Write slogans that match the emotional hooks
+Provide detailed image prompts ready for AI generators
+Score honestly - not everything is a 10
+Explain the reasoning behind each score

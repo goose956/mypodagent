@@ -1,0 +1,85 @@
+MyPODAgent
+AI Print on Demand
+
+test2
+
+Projects
+
+AI Agent
+
+Workflows
+
+Canvas
+
+Media Library
+
+Ideas
+POD Workflows
+Editing: mugs
+
+Project Details
+AI Image
+AI Video
+AI Copy
+Run Workflow
+Create automated workflows to generate multiple pieces of content at once. Combine AI images, videos, and product copy into reusable workflows.
+
+1.
+Click module buttons to build your workflow
+2.
+Queue workflows with Play button (runs one-by-one)
+3.
+View results in project files
+Create Workflow
+mugs
+
+2 modules
+
+✓ Completed
+
+
+
+View Results
+
+
+React Flow
+Project Files
+Files from selected project
+
+No files in this project yet
+
+Execution Log
+Real-time workflow execution status
+
+15:17:07
+Progress: 1/2
+15:17:13
+Progress: 2/2
+15:17:13
+✓ Successfully generated 1 copy item
+Frontend
+Member Area
+Admin
+Workflow Execution Results
+View all generated images, videos, and copy from this workflow
+
+Project Details
+Project: Mugs
+
+ID: c0dbf6cd-d197-4f21-b756-83d61124e77c
+
+Generated Copy (1)
+Medium - Casual Tone
+
+**Product Title: Cozy Cabin Vibes - Nature-Inspired Throw Pillow**
+
+Transform your living space into a serene retreat with our Cozy Cabin Vibes throw pillow. Crafted from premium, soft-touch fabric, this pillow is not just an accessory, but an invitation to unwind. Whether you're an avid nature lover or just crave that peaceful cabin vibe, this pillow is your perfect companion.
+
+Featuring a picturesque design of towering pines and a tranquil lakeside view, it's an instant mood lifter. Its high-quality print ensures the artwork stays vibrant and fade-resistant, wash after wash. Perfect for your couch, bed, or favorite chair, it effortlessly adds a touch of the great outdoors to any room.
+
+Great as a gift or a treat for yourself, this throw pillow harmonizes comfort and style. Ready to cozy up your decor? Order now and bring a splash of nature into your home with this must-have POD gem. Your cozy corner awaits! 
+
+**Keywords:** throw pillow, nature-inspired decor, cozy cabin vibes, home accessories, premium fabric, serene retreat.
+Download as .txt file
+Close
+Close
