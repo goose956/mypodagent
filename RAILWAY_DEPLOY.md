@@ -82,8 +82,11 @@ The app automatically detects which environment it's running in and uses the rig
 
 **App won't start:**
 - Check the deploy logs in the Railway dashboard
-- Make sure all 4 environment variables are set
+- Make sure all 5 required environment variables are set
 - Ensure the PostgreSQL database is connected
+
+**Can't create an admin user:**
+- Set `ADMIN_CREATION_KEY` if you plan to use the create-admin route
 
 **Files/images not loading:**
 - Make sure the Volume is mounted at `/app/uploads`
