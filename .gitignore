@@ -8,4 +8,6 @@ vite.config.ts.*
 .env.*
 !.env.example
 uploads
+attached_assets/generated_images/
+project-files/
 *.log

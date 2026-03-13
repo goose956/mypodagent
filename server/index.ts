@@ -59,7 +59,7 @@ const sessionStore = new PgSession({
 app.use(
   session({
     store: sessionStore,
-    secret: process.env.SESSION_SECRET || "podagent-session-secret-change-in-production",
+    secret: process.env.SESSION_SECRET || (process.env.NODE_ENV === "production" ? (() => { throw new Error("SESSION_SECRET must be set in production"); })() : "dev-only-session-secret"),
     resave: false,
     saveUninitialized: false,
     cookie: {

@@ -51,8 +51,11 @@ export function registerAuthRoutes(app: Express, storage: IStorage) {
     try {
       const { username, password, email, adminKey } = req.body;
 
-      // Validate admin creation key (use environment variable for security)
-      const ADMIN_CREATION_KEY = process.env.ADMIN_CREATION_KEY || "create-admin-2024";
+      // Validate admin creation key (must be set via environment variable)
+      const ADMIN_CREATION_KEY = process.env.ADMIN_CREATION_KEY;
+      if (!ADMIN_CREATION_KEY) {
+        return res.status(503).json({ message: "Admin creation is not configured. Set ADMIN_CREATION_KEY environment variable." });
+      }
       if (adminKey !== ADMIN_CREATION_KEY) {
         return res.status(403).json({ message: "Invalid admin creation key" });
       }
