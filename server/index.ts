@@ -166,12 +166,15 @@ app.use((req, res, next) => {
       const existingAdmin = await storage.getUserByAdmin();
       if (!existingAdmin) {
         const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
+        const email = process.env.ADMIN_EMAIL || `${process.env.ADMIN_USERNAME}@admin.local`;
         await storage.createAdminUser({
           username: process.env.ADMIN_USERNAME,
           password: hashedPassword,
-          email: process.env.ADMIN_EMAIL || "",
+          email,
         });
         log("Admin account created successfully");
+      } else {
+        log("Admin account already exists, skipping creation");
       }
     } catch (err) {
       console.error("Failed to auto-create admin:", err);
