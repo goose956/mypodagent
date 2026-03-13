@@ -6,6 +6,7 @@ import { registerRoutes } from "./routes";
 import { setupAuth } from "./auth";
 import { setupVite, serveStatic, log } from "./vite";
 import { storage } from "./storage";
+import bcrypt from "bcrypt";
 
 function preflightEnvCheck() {
   if (process.env.NODE_ENV !== "production") {
@@ -159,6 +160,24 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Auto-create admin account on first startup if configured
+  if (process.env.ADMIN_USERNAME && process.env.ADMIN_PASSWORD) {
+    try {
+      const existingAdmin = await storage.getUserByAdmin();
+      if (!existingAdmin) {
+        const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
+        await storage.createAdminUser({
+          username: process.env.ADMIN_USERNAME,
+          password: hashedPassword,
+          email: process.env.ADMIN_EMAIL || "",
+        });
+        log("Admin account created successfully");
+      }
+    } catch (err) {
+      console.error("Failed to auto-create admin:", err);
+    }
+  }
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
