@@ -1,51 +1,10 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Package, Sparkles, Video, Image, FileText, CheckCircle, Workflow, Palette, Zap, Quote, AlertCircle, Clock, Frown } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { Package, Sparkles, CheckCircle, Workflow, Palette, Zap, Quote } from "lucide-react";
 
 export default function Landing() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
-
-  const { data: signupMode } = useQuery<{ mode: string }>({
-    queryKey: ["/api/settings/signup-mode"],
-  });
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      await apiRequest('/api/beta-signup', {
-        method: 'POST',
-        body: JSON.stringify({
-          name,
-          email
-        })
-      });
-
-      // Redirect to confirmation page
-      setLocation('/beta-confirmation');
-    } catch (error: any) {
-      toast({
-        title: "Signup Failed",
-        description: error.message || "Please try again or contact us directly.",
-        variant: "destructive"
-      });
-      setIsSubmitting(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -57,7 +16,7 @@ export default function Landing() {
             <div className="space-y-4">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
                 <Sparkles className="h-4 w-4 text-primary" />
-                <span className="text-sm font-semibold text-primary">BETA TESTING NOW</span>
+                <span className="text-sm font-semibold text-primary">NOW OPEN TO EVERYONE</span>
               </div>
               <h1 className="text-5xl md:text-6xl font-bold tracking-tight" data-testid="text-hero-title">
                 POD sellers create <span className="underline decoration-primary decoration-2 underline-offset-4">products</span><br />
@@ -68,90 +27,27 @@ export default function Landing() {
                 Transform product ideas into complete Etsy, Amazon, and Shopify listings with AI-powered workflows. Generate professional videos, eye-catching images, and SEO-optimized copy—all in one platform. No design skills needed.
               </p>
             </div>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+              <Button 
+                size="lg" 
+                className="text-lg px-8"
+                onClick={() => setLocation('/pricing')}
+                data-testid="button-hero-pricing"
+              >
+                View Plans & Pricing
+                <Sparkles className="ml-2 h-5 w-5" />
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="text-lg px-8"
+                onClick={() => setLocation('/auth')}
+                data-testid="button-hero-signup"
+              >
+                Start Free
+              </Button>
+            </div>
           </div>
-        </div>
-      </section>
-
-      {/* Beta Signup CTA */}
-      <section className="py-16 px-6">
-        <div className="container mx-auto max-w-md">
-          <Card className="border-primary/50">
-            <CardContent className="p-8 space-y-6">
-              <div className="text-center space-y-2">
-                <h2 className="text-2xl font-bold">
-                  {signupMode?.mode === 'waitlist' ? 'Join the Waiting List' : 'Join the Beta'}
-                </h2>
-                <p className="text-muted-foreground">
-                  {signupMode?.mode === 'waitlist' 
-                    ? 'Get notified when new spots open up'
-                    : 'Be among the first to experience the future of POD content creation'}
-                </p>
-              </div>
-
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button 
-                    className="w-full" 
-                    size="lg"
-                    data-testid="button-open-signup"
-                  >
-                    {signupMode?.mode === 'waitlist' ? 'Join Waiting List' : 'Request Beta Access'}
-                    <Sparkles className="ml-2 h-5 w-5" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>
-                      {signupMode?.mode === 'waitlist' ? 'Join the Waiting List' : 'Join the Beta'}
-                    </DialogTitle>
-                    <DialogDescription>
-                      {signupMode?.mode === 'waitlist' 
-                        ? "We'll notify you as soon as spots become available."
-                        : "Enter your details to get early access to MyPODAgent."}
-                    </DialogDescription>
-                  </DialogHeader>
-
-                  <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="dialog-name">Name</Label>
-                      <Input
-                        id="dialog-name"
-                        type="text"
-                        placeholder="Your name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required
-                        data-testid="input-beta-name"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="dialog-email">Email</Label>
-                      <Input
-                        id="dialog-email"
-                        type="email"
-                        placeholder="you@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        data-testid="input-beta-email"
-                      />
-                    </div>
-
-                    <Button 
-                      type="submit" 
-                      className="w-full" 
-                      disabled={isSubmitting}
-                      data-testid="button-beta-signup"
-                    >
-                      {isSubmitting ? "Submitting..." : signupMode?.mode === 'waitlist' ? 'Join Waiting List' : 'Request Beta Access'}
-                      <Sparkles className="ml-2 h-4 w-4" />
-                    </Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </CardContent>
-          </Card>
         </div>
       </section>
 
@@ -314,11 +210,13 @@ export default function Landing() {
               </div>
             </div>
             <p className="text-sm text-muted-foreground text-center">
-              Beta access is limited. Sign up now to secure your spot.
+              Start creating professional POD content today. No design skills needed.
             </p>
-            <p className="text-xs text-muted-foreground/50">
-              Already have access? <a href="/beta-login" className="underline hover:text-primary">Login here</a>
-            </p>
+            <div className="flex items-center gap-4">
+              <a href="/pricing" className="text-xs text-muted-foreground/50 underline hover:text-primary">View Pricing</a>
+              <a href="/auth" className="text-xs text-muted-foreground/50 underline hover:text-primary">Sign Up</a>
+              <a href="/auth" className="text-xs text-muted-foreground/50 underline hover:text-primary">Login</a>
+            </div>
           </div>
         </div>
       </footer>
