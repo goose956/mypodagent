@@ -12,7 +12,6 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PrintfulBrowser } from '@/components/PrintfulBrowser';
-import ProfileManager from '@/components/ProfileManager';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -434,7 +433,6 @@ export default function AIAgent() {
   const [copyKeywords, setCopyKeywords] = useState('');
   const [generatingCopy, setGeneratingCopy] = useState(false);
   const [copyFormProfileId, setCopyFormProfileId] = useState<string>('');
-  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const secondFileInputRef = useRef<HTMLInputElement>(null);
@@ -1813,10 +1811,6 @@ export default function AIAgent() {
 
   return (
     <div className="min-h-screen p-6">
-      <ProfileManager
-        selectedProfileId={selectedProfileId}
-        onProfileSelect={setSelectedProfileId}
-      />
       <div>
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">

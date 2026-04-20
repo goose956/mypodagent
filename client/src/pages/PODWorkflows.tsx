@@ -29,6 +29,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import type { PodWorkflow, Project, ProductProfile } from '@shared/schema';
+import ProfileManager from '@/components/ProfileManager';
 import { 
   FileText, 
   Image as ImageIcon, 
@@ -5053,6 +5054,8 @@ export default function PODWorkflows() {
     message: string;
   }>>([]);
   
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+  
   const { toast } = useToast();
   
   // Check for batch data from Ideas page on mount
@@ -6379,7 +6382,12 @@ export default function PODWorkflows() {
   };
 
   return (
-    <div className="h-full flex flex-col p-6">
+    <div className="h-full flex flex-col">
+      <ProfileManager
+        selectedProfileId={selectedProfileId}
+        onProfileSelect={setSelectedProfileId}
+      />
+      <div className="flex-1 flex flex-col p-6">
       {/* Results Dialog */}
       <Dialog open={resultsDialogOpen} onOpenChange={setResultsDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
@@ -7847,6 +7855,7 @@ export default function PODWorkflows() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }
