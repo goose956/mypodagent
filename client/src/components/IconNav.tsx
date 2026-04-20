@@ -1,11 +1,10 @@
-import { Bot, FolderKanban, Layers, Library, Lightbulb, Workflow, Database } from 'lucide-react';
+import { FolderKanban, Layers, Library, Lightbulb, Workflow, Database } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { path: '/dashboard', icon: FolderKanban, label: 'Projects', testId: 'icon-nav-projects' },
-  { path: '/ai-agent', icon: Bot, label: 'AI Agent', testId: 'icon-nav-ai-agent' },
-  { path: '/pod-workflows', icon: Workflow, label: 'Workflows', testId: 'icon-nav-workflows' },
+  { path: '/pod-workflows', icon: Workflow, label: 'AI Agent Workflows', testId: 'icon-nav-workflows' },
   { path: '/canvas', icon: Layers, label: 'Canvas', testId: 'icon-nav-canvas' },
   { path: '/library', icon: Library, label: 'Media Library', testId: 'icon-nav-library' },
   { path: '/ideas', icon: Lightbulb, label: 'Ideas', testId: 'icon-nav-ideas' },

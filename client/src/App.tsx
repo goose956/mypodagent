@@ -16,7 +16,6 @@ import ListingCopyCreator from "@/pages/ListingCopyCreator";
 import VideoLibrary from "@/pages/VideoLibrary";
 import VideoEditor from "@/pages/VideoEditor";
 import Canvas from "@/pages/Canvas";
-import AIAgent from "@/pages/AIAgent";
 import Ideas from "@/pages/Ideas";
 import PODWorkflows from "@/pages/PODWorkflows";
 import Uploads from "@/pages/Uploads";
@@ -111,13 +110,6 @@ function Router() {
         {() => (
           <ProtectedRoute>
             <Canvas />
-          </ProtectedRoute>
-        )}
-      </Route>
-      <Route path="/ai-agent">
-        {() => (
-          <ProtectedRoute>
-            <AIAgent />
           </ProtectedRoute>
         )}
       </Route>

@@ -49,7 +49,7 @@ export default function Header() {
     <>
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="flex h-16 items-center justify-between px-6">
-          <Link href={showMemberNav ? "/ai-agent" : "/"}>
+          <Link href={showMemberNav ? "/pod-workflows" : "/"}>
             <div className="flex items-center space-x-3 hover-elevate rounded-lg p-2 -m-2 cursor-pointer">
               <div className="flex items-center justify-center w-10 h-10 bg-primary rounded-lg relative">
                 <Package className="h-5 w-5 text-primary-foreground" />

@@ -932,7 +932,7 @@ export default function ProjectManager() {
                               variant="default"
                               onClick={() => {
                                 setSelectedProject(project);
-                                setLocation(`/ai-agent?projectId=${project.id}`);
+                                setLocation(`/pod-workflows?projectId=${project.id}`);
                               }}
                               data-testid={`button-open-project-${project.id}`}
                               className="bg-green-600 hover:bg-green-700 text-white"
