@@ -304,8 +304,8 @@ export class ObjectStorageService {
 
       if (useLocalStorage) {
         const dir = path.join(LOCAL_STORAGE_DIR, "public", "uploads");
-        fs.mkdirSync(dir, { recursive: true });
         const filePath = path.join(dir, uniqueFilename);
+        fs.mkdirSync(path.dirname(filePath), { recursive: true });
         fs.writeFileSync(filePath, fileBuffer);
         console.log(`File stored locally at: ${filePath}`);
         return `/objects/public/uploads/${uniqueFilename}`;
