@@ -8,7 +8,26 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
+      {/* Top Navigation */}
+      <nav className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto max-w-5xl px-6 h-14 flex items-center justify-between">
+          <button onClick={() => setLocation('/')} className="flex items-center space-x-2">
+            <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-lg relative">
+              <Package className="h-4 w-4 text-primary-foreground" />
+              <Sparkles className="h-2.5 w-2.5 text-accent absolute -top-0.5 -right-0.5" />
+            </div>
+            <span className="font-bold text-sm">MyPODAgent</span>
+          </button>
+          <div className="flex items-center gap-6">
+            <button onClick={() => setLocation('/')} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Home</button>
+            <button onClick={() => setLocation('/pricing')} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Pricing</button>
+            <button onClick={() => setLocation('/contact')} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Contact</button>
+            <Button size="sm" onClick={() => setLocation('/auth')}>Sign Up</Button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Section */
       <section className="relative py-20 px-6 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-accent/10" />
         <div className="container mx-auto max-w-4xl relative">
@@ -212,10 +231,11 @@ export default function Landing() {
             <p className="text-sm text-muted-foreground text-center">
               Start creating professional POD content today. No design skills needed.
             </p>
-            <div className="flex items-center gap-4">
-              <a href="/pricing" className="text-xs text-muted-foreground/50 underline hover:text-primary">View Pricing</a>
-              <a href="/auth" className="text-xs text-muted-foreground/50 underline hover:text-primary">Sign Up</a>
-              <a href="/auth" className="text-xs text-muted-foreground/50 underline hover:text-primary">Login</a>
+            <div className="flex items-center gap-6">
+              <a href="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">Home</a>
+              <a href="/pricing" className="text-sm font-semibold text-primary hover:underline transition-colors">Pricing</a>
+              <a href="/contact" className="text-sm text-muted-foreground hover:text-primary transition-colors">Contact</a>
+              <a href="/auth" className="text-sm text-muted-foreground hover:text-primary transition-colors">Login</a>
             </div>
           </div>
         </div>
