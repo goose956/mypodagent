@@ -154,8 +154,8 @@ function Router() {
 function App() {
   const [location] = useLocation();
   
-  // Hide header and navigation on lead magnet pages
-  const isLeadMagnetPage = location.startsWith('/lead-magnet');
+  // Hide header on lead magnet pages and Landing (has its own nav)
+  const isLeadMagnetPage = location.startsWith('/lead-magnet') || location === '/';
 
   return (
     <QueryClientProvider client={queryClient}>
