@@ -27,7 +27,7 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* Hero Section */
+      {/* Hero Section */}
       <section className="relative py-20 px-6 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-accent/10" />
         <div className="container mx-auto max-w-4xl relative">
