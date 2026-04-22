@@ -38,6 +38,7 @@ interface ChatWindowProps {
   canvasAspectRatio?: string // Optional canvas aspect ratio (e.g., "16:9", "1:1")
   imageGenerationEndpoint?: string // Optional custom endpoint for image generation
   hideModelSelector?: boolean // Hide model selector when forced model is used
+  forcedModel?: string // Optional forced model (used when selector is hidden)
 }
 
 const DEFAULT_COMMANDS: QuickCommand[] = [
@@ -46,12 +47,12 @@ const DEFAULT_COMMANDS: QuickCommand[] = [
   { id: '3', text: 'Flip image vertically' }
 ]
 
-export function ChatWindow({ isOpen, onClose, onAttachCanvas, onSaveImage, onSaveToCanvas, onSaveToMediaLibrary, canvasAspectRatio, imageGenerationEndpoint = '/api/chat/start-image-generation', hideModelSelector = false }: ChatWindowProps) {
+export function ChatWindow({ isOpen, onClose, onAttachCanvas, onSaveImage, onSaveToCanvas, onSaveToMediaLibrary, canvasAspectRatio, imageGenerationEndpoint = '/api/chat/start-image-generation', hideModelSelector = false, forcedModel }: ChatWindowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [inputText, setInputText] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [attachedCanvas, setAttachedCanvas] = useState<string | null>(null)
-  const [selectedModel, setSelectedModel] = useState<string>('4o-images')
+  const [selectedModel, setSelectedModel] = useState<string>(forcedModel || '4o-images')
   const [generationProgress, setGenerationProgress] = useState(0)
   const [currentTaskId, setCurrentTaskId] = useState<string | null>(null)
   const [lockedModel, setLockedModel] = useState<string | null>(null)
@@ -75,6 +76,13 @@ export function ChatWindow({ isOpen, onClose, onAttachCanvas, onSaveImage, onSav
       setLockedModel(null)
     }
   }, [isOpen])
+
+  // Keep selected model in sync when model is forced by parent
+  useEffect(() => {
+    if (forcedModel) {
+      setSelectedModel(forcedModel)
+    }
+  }, [forcedModel])
 
   // Auto-scroll during generation to keep progress visible
   useEffect(() => {
@@ -311,7 +319,7 @@ export function ChatWindow({ isOpen, onClose, onAttachCanvas, onSaveImage, onSav
         body: JSON.stringify({
           prompt: promptText,
           baseImage: attachedCanvas,
-          model: selectedModel,
+          model: forcedModel || selectedModel,
           canvasAspectRatio: canvasAspectRatio // Send canvas aspect ratio to preserve dimensions
         })
       })
@@ -425,7 +433,7 @@ export function ChatWindow({ isOpen, onClose, onAttachCanvas, onSaveImage, onSav
         body: JSON.stringify({
           prompt: editPromptText,
           baseImage: dataUrl,
-          model: selectedModel,
+          model: forcedModel || selectedModel,
           canvasAspectRatio: canvasAspectRatio
         })
       })
@@ -663,7 +671,7 @@ export function ChatWindow({ isOpen, onClose, onAttachCanvas, onSaveImage, onSav
             </div>
           )}
 
-          {/* Model Selection - Hidden for Canvas (forced GPT-4o) */}
+          {/* Model Selection - hidden when parent forces a single model */}
           {!hideModelSelector && (
             <div className="mb-4">
               <Label htmlFor="model-select" className="text-sm font-medium mb-2 block">
@@ -730,7 +738,7 @@ export function ChatWindow({ isOpen, onClose, onAttachCanvas, onSaveImage, onSav
                     className="h-3" 
                     data-testid="progress-image-generation"
                   />
-                  {(lockedModel || selectedModel) === '4o-images' && generationProgress < 50 && (
+                  {(lockedModel || forcedModel || selectedModel) === '4o-images' && generationProgress < 50 && (
                     <p className="text-xs text-muted-foreground">
                       4o Images takes 2-3 minutes to generate high-quality results
                     </p>

@@ -2046,7 +2046,7 @@ export default function Canvas() {
         </div>
       </div>
 
-      {/* Chat Window - Canvas uses GPT-4o only */}
+      {/* Chat Window - Canvas uses nano-banana through Kie */}
       <ChatWindow
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}
@@ -2056,6 +2056,7 @@ export default function Canvas() {
         onSaveToMediaLibrary={handleSaveToMediaLibrary}
         imageGenerationEndpoint="/api/canvas/start-image-generation"
         hideModelSelector={true}
+        forcedModel="nano-banana"
         canvasAspectRatio={selectedSize.ratio}
       />
 

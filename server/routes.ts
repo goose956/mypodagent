@@ -5550,13 +5550,11 @@ Respond with JSON in this format:
     }
   });
 
-  // Canvas-specific image generation endpoint - COMPLETELY SEPARATE - ALWAYS uses GPT-4o
+  // Canvas-specific image generation endpoint - uses KieAiService with nano-banana
   app.post("/api/canvas/start-image-generation", requireAuth, async (req, res) => {
     const { prompt, baseImage, canvasAspectRatio } = req.body;
-    const KIE_API_KEY = process.env.KIE_AI_API_KEY;
-    const KIE_BASE_URL = 'https://api.kie.ai/api/v1';
     
-    console.log(`========== CANVAS GPT-4O GENERATION (SEPARATE) ==========`);
+    console.log(`========== CANVAS NANO-BANANA GENERATION ==========`);
     console.log(`Prompt: ${prompt}`);
     console.log(`Canvas aspect ratio: ${canvasAspectRatio || 'auto-detect'}`);
     console.log(`Has canvas image: ${!!baseImage}`);
@@ -5596,11 +5594,11 @@ Respond with JSON in this format:
       }
 
       let detectedAspectRatio = canvasAspectRatio || '1:1';
-      let uploadedFileUrl: string | null = null;
+      let imageBuffer: Buffer | null = null;
 
       // Process and upload canvas image if provided
       if (baseImage) {
-        console.log(`Processing canvas image for GPT-4o...`);
+        console.log(`Processing canvas image for nano-banana...`);
         
         // Convert base64 data URL to buffer
         const base64Data = baseImage.replace(/^data:image\/[a-z]+;base64,/, '');
@@ -5626,122 +5624,30 @@ Respond with JSON in this format:
           }
         }
         
-        // Upload canvas image directly to Kie.ai using multipart/form-data
-        console.log('Uploading canvas to Kie.ai...');
-        
-        // Create form boundary for multipart upload
-        const boundary = `----WebKitFormBoundary${Date.now()}`;
-        const formDataParts: Buffer[] = [];
-        
-        // Add file part
-        formDataParts.push(Buffer.from(
-          `--${boundary}\r\n` +
-          `Content-Disposition: form-data; name="file"; filename="canvas_${Date.now()}.png"\r\n` +
-          `Content-Type: image/png\r\n\r\n`
-        ));
-        formDataParts.push(imageBuffer);
-        formDataParts.push(Buffer.from(`\r\n`));
-        
-        // Add uploadPath part
-        formDataParts.push(Buffer.from(
-          `--${boundary}\r\n` +
-          `Content-Disposition: form-data; name="uploadPath"\r\n\r\n` +
-          `canvas-images\r\n`
-        ));
-        formDataParts.push(Buffer.from(`--${boundary}--\r\n`));
-        
-        const formDataBuffer = Buffer.concat(formDataParts);
-        
-        const uploadResponse = await fetch('https://kieai.redpandaai.co/api/file-stream-upload', {
-          method: 'POST',
-          headers: { 
-            'Authorization': `Bearer ${KIE_API_KEY}`,
-            'Content-Type': `multipart/form-data; boundary=${boundary}`
-          },
-          body: formDataBuffer
-        });
-        
-        if (!uploadResponse.ok) {
-          const errorText = await uploadResponse.text();
-          console.error(`Kie.ai upload failed: ${uploadResponse.status} - ${errorText}`);
-          throw new Error(`Kie.ai upload failed: ${uploadResponse.status}`);
-        }
-        
-        const uploadResult = await uploadResponse.json();
-        console.log('Canvas upload response:', uploadResult);
-        
-        // Extract uploaded file URL (check multiple possible response formats)
-        if (uploadResult.data?.downloadUrl) {
-          uploadedFileUrl = uploadResult.data.downloadUrl;
-        } else if (uploadResult.data?.url) {
-          uploadedFileUrl = uploadResult.data.url;
-        } else if (uploadResult.url) {
-          uploadedFileUrl = uploadResult.url;
-        } else {
-          throw new Error(`Upload response missing URL. Response: ${JSON.stringify(uploadResult)}`);
-        }
-        
-        console.log('Canvas uploaded to Kie.ai:', uploadedFileUrl);
+        imageBuffer = Buffer.from(base64Data, 'base64');
       }
 
-      // Call GPT-4o API directly - NO SHARED CODE
-      console.log(`Calling GPT-4o API directly with aspect ratio: ${detectedAspectRatio}...`);
-      console.log(`User prompt (no enhancement): ${prompt}`);
-      
-      const requestBody = {
-        prompt: prompt, // User's exact prompt, NO enhancement
-        size: detectedAspectRatio,
-        nVariants: 1,
-        ...(uploadedFileUrl && { filesUrl: [uploadedFileUrl] })
-      };
-      
-      console.log('GPT-4o request:', JSON.stringify(requestBody, null, 2));
-      
-      const response = await fetch(`${KIE_BASE_URL}/gpt4o-image/generate`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${KIE_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
-      });
+      const jobResponse = await kieAiService.generateImage({
+        prompt,
+        imageBuffer,
+        model: 'nano-banana',
+        aspectRatio: detectedAspectRatio,
+      }, userId, req.user?.isAdmin === true);
 
-      console.log('GPT-4o response status:', response.status);
-      const responseText = await response.text();
-      console.log('GPT-4o response:', responseText);
-
-      if (!response.ok) {
-        throw new Error(`GPT-4o API error: ${response.status} - ${responseText}`);
+      if (!jobResponse.data?.taskId) {
+        throw new Error('Failed to create nano-banana generation task');
       }
 
-      const result = JSON.parse(responseText);
-      
-      if (result.code !== 200 || !result.data?.taskId) {
-        throw new Error(`GPT-4o API error: ${result.msg || 'No taskId returned'}`);
-      }
+      const taskId = jobResponse.data.taskId;
+      console.log(`Canvas nano-banana task created: ${taskId}`);
 
-      const taskId = result.data.taskId;
-      console.log(`Canvas GPT-4o task created: ${taskId}`);
-
-      // Deduct credits AFTER successful API call (skip for admins)
-      if (!isAdmin) {
-        const deducted = await storage.deductCredits(userId, IMAGE_CREDIT_COST);
-        if (deducted) {
-          console.log(`Successfully deducted ${IMAGE_CREDIT_COST} credits from user ${userId}`);
-        } else {
-          console.error(`Failed to deduct credits for user ${userId}, but task was created`);
-        }
-      } else {
-        console.log(`Admin user ${userId} - skipping credit deduction (unlimited access)`);
-      }
-
-      console.log(`========== END CANVAS GPT-4O REQUEST ==========`);
+      console.log(`========== END CANVAS NANO-BANANA REQUEST ==========`);
 
       // Return taskId for progress tracking
-      res.json({ taskId, model: '4o-images', status: 'processing' });
+      res.json({ taskId, model: 'nano-banana', status: 'processing' });
       
     } catch (error) {
-      console.error(`Canvas GPT-4o generation error:`, error);
+      console.error(`Canvas nano-banana generation error:`, error);
       
       // Check if error is about insufficient credits
       const errorMessage = error instanceof Error ? error.message : String(error);

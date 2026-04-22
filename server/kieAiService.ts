@@ -228,14 +228,18 @@ export class KieAiService {
   }
 
   async generateImage(params: KieAiImageRequest, userId: string, isAdmin: boolean = false): Promise<KieAiJobResponse> {
-    // CRITICAL: Only GPT-4o models are allowed for image generation
-    // This enforces the requirement that workflow execution must use GPT-4o exclusively
     if (params.model === 'gpt-image-1' || params.model === '4o-images' || params.model === 'gpt-4o') {
       return this.generateWith4oImages(params, userId, isAdmin);
-    } else {
-      // Reject any non-GPT-4o model to prevent nano-banana fallback
-      throw new Error(`Invalid model '${params.model}': Only GPT-4o models (gpt-4o, 4o-images, gpt-image-1) are allowed. Nano-banana is prohibited for workflow execution.`);
     }
+
+    if (params.model === 'nano-banana') {
+      return this.trackApiCall(async () => {
+        const result = await this.generateWithNanoBanana(params);
+        return result;
+      }, userId, 'nano-banana', 'image', isAdmin);
+    }
+
+    throw new Error(`Invalid model '${params.model}'. Supported image models are: nano-banana, 4o-images, gpt-4o, gpt-image-1.`);
   }
 
   private async generateWithNanoBanana(params: KieAiImageRequest): Promise<KieAiJobResponse> {
