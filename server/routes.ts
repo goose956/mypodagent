@@ -5827,9 +5827,34 @@ Respond with JSON in this format:
         });
       }
       
-      if (statusResponse.data?.successFlag === 1) {
+      const jobData = statusResponse.data as any;
+      const normalizedState = String(jobData?.state || jobData?.status || '').toLowerCase();
+      const successByFlag = jobData?.successFlag === 1;
+      const successByState = normalizedState === 'success' || normalizedState === 'succeeded' || normalizedState === 'completed';
+      const failedByFlag = jobData?.successFlag === 2 || jobData?.successFlag === 3;
+      const failedByState = normalizedState === 'fail' || normalizedState === 'failed' || normalizedState === 'error';
+
+      // Extract result URLs from both 4o and nano-banana response shapes
+      let resultUrls: string[] = [];
+      if (Array.isArray(jobData?.response?.resultUrls)) {
+        resultUrls = jobData.response.resultUrls;
+      } else if (Array.isArray(jobData?.response?.result_urls)) {
+        resultUrls = jobData.response.result_urls;
+      } else if (Array.isArray(jobData?.resultUrls)) {
+        resultUrls = jobData.resultUrls;
+      } else if (typeof jobData?.resultJson === 'string') {
+        try {
+          const parsed = JSON.parse(jobData.resultJson);
+          if (Array.isArray(parsed?.resultUrls)) {
+            resultUrls = parsed.resultUrls;
+          }
+        } catch {
+          // Ignore invalid JSON in resultJson and continue with empty result list
+        }
+      }
+
+      if (successByFlag || successByState) {
         // Success - get the result URL
-        const resultUrls = statusResponse.data.response?.resultUrls;
         if (resultUrls && resultUrls.length > 0) {
           const generatedImageUrl = resultUrls[0];
           
@@ -5894,18 +5919,26 @@ Respond with JSON in this format:
             imageUrl: localImageUrl
           });
         }
-      } else if (statusResponse.data?.successFlag === 2 || statusResponse.data?.successFlag === 3) {
+      } else if (failedByFlag || failedByState) {
         // Failed
         return res.json({
           status: 'failed',
           progress: 0,
           taskId: taskId,
-          error: statusResponse.data?.errorMessage || 'Unknown error'
+          error: jobData?.errorMessage || jobData?.failMsg || 'Unknown error'
         });
       } else {
         // Still generating - return progress
-        const progress = statusResponse.data?.progress ? 
-          Math.round(parseFloat(String(statusResponse.data.progress)) * 100) : 0;
+        const rawProgress = jobData?.progress;
+        let progress = 0;
+        if (rawProgress !== undefined && rawProgress !== null) {
+          const parsed = parseFloat(String(rawProgress));
+          if (!Number.isNaN(parsed)) {
+            // Kie returns either 0-1 or 0-100 depending on endpoint/model
+            progress = parsed <= 1 ? Math.round(parsed * 100) : Math.round(parsed);
+            progress = Math.max(0, Math.min(100, progress));
+          }
+        }
         
         return res.json({
           status: 'generating',
