@@ -243,7 +243,7 @@ function TriggerGeneration({ message, onUpdate }: {
         const requestBody: any = {
           prompt: triggerData.prompt,
           baseImage: baseImageData,
-          model: triggerData.model || '4o-images',
+          model: triggerData.model || 'nano-banana',
           canvasAspectRatio: '1:1'
         };
         

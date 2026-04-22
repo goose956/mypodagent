@@ -7009,7 +7009,7 @@ Respond with JSON in this format:
           await storage.createAgentTask({
             conversationId,
             description: "Merging product images",
-            details: "Combining two images into a single product image using 4o Images",
+            details: "Combining two images into a single product image using Nano Banana",
             status: "in_progress",
             startTime: new Date()
           });
@@ -7025,13 +7025,13 @@ Respond with JSON in this format:
           responseMessage = await storage.createAgentMessage({
             conversationId,
             role: "assistant",
-            content: "Perfect! Merging your images into a single product image. This will take 2-3 minutes with 4o Images...",
+            content: "Perfect! Merging your images into a single product image with Nano Banana. This usually takes around 1-2 minutes...",
             componentType: "trigger_generation",
             componentData: {
               prompt: "Combine and merge these two product images into a single cohesive product image. Blend them naturally together, maintaining the best qualities of both images. Create a professional, high-quality result.",
               baseImage: firstImageUrl,
               secondImage: secondImageUrl,
-              model: "4o-images"
+              model: "nano-banana"
             }
           });
         }
@@ -7102,7 +7102,7 @@ Respond with JSON in this format:
             componentData: {
               prompt: description,
               baseImage: startingImageUrl,
-              model: "4o-images"
+              model: "nano-banana"
             }
           });
         }
@@ -7220,7 +7220,7 @@ Respond with JSON in this format:
             componentData: {
               prompt: changes,
               baseImage: imageUrl,
-              model: "4o-images"
+              model: "nano-banana"
             }
           });
         }
@@ -7959,7 +7959,7 @@ Respond with JSON in this format:
             componentData: { 
               prompt: content,
               baseImage: baseImageToUse,
-              model: '4o-images'
+              model: 'nano-banana'
             }
           });
         }
