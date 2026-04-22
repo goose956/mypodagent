@@ -5643,8 +5643,14 @@ Respond with JSON in this format:
 
       console.log(`========== END CANVAS NANO-BANANA REQUEST ==========`);
 
-      // Return taskId for progress tracking
-      res.json({ taskId, model: 'nano-banana', status: 'processing' });
+      // Return taskId for progress tracking with explicit provider metadata
+      res.json({
+        taskId,
+        model: 'nano-banana',
+        provider: 'kie',
+        endpoint: '/jobs/createTask',
+        status: 'processing'
+      });
       
     } catch (error) {
       console.error(`Canvas nano-banana generation error:`, error);

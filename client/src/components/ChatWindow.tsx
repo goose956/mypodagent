@@ -724,7 +724,7 @@ export function ChatWindow({ isOpen, onClose, onAttachCanvas, onSaveImage, onSav
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
                   <span className="text-sm font-medium">
-                    Generating image with {(lockedModel || selectedModel) === 'nano-banana' ? 'Nano Banana' : '4o Images'}...
+                    Generating image with {(lockedModel || forcedModel || selectedModel) === 'nano-banana' ? 'Nano Banana (Kie)' : '4o Images'}...
                   </span>
                 </div>
                 

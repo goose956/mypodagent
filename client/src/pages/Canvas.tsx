@@ -1485,7 +1485,7 @@ export default function Canvas() {
             </div>
             <div className="flex items-center gap-1">
               <MessageCircle className="w-4 h-4 text-primary" />
-              <span>AI image generation (GPT-4o)</span>
+              <span>AI image generation (Nano Banana via Kie)</span>
             </div>
             <div className="flex items-center gap-1">
               <Package className="w-4 h-4 text-primary" />
