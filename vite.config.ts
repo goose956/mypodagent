@@ -25,6 +25,8 @@ export default defineConfig({
       "@": path.resolve(__dirname, "client", "src"),
       "@shared": path.resolve(__dirname, "shared"),
       "@assets": path.resolve(__dirname, "attached_assets"),
+      "fabric": path.resolve(__dirname, "node_modules", "fabric", "dist", "index.js"),
+      "@reactflow/core": path.resolve(__dirname, "node_modules", "@reactflow", "core", "dist", "umd", "index.js"),
     },
   },
   root: path.resolve(__dirname, "client"),

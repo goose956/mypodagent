@@ -5602,11 +5602,11 @@ Respond with JSON in this format:
         
         // Convert base64 data URL to buffer
         const base64Data = baseImage.replace(/^data:image\/[a-z]+;base64,/, '');
-        const imageBuffer = Buffer.from(base64Data, 'base64');
+        const sourceImageBuffer = Buffer.from(base64Data, 'base64');
         
         // Detect aspect ratio from canvas image
         if (!canvasAspectRatio) {
-          const metadata = await sharp(imageBuffer).metadata();
+          const metadata = await sharp(sourceImageBuffer).metadata();
           if (metadata.width && metadata.height) {
             const aspectRatio = metadata.width / metadata.height;
             console.log(`Detected canvas: ${metadata.width}x${metadata.height}, ratio: ${aspectRatio.toFixed(2)}`);
@@ -5624,7 +5624,7 @@ Respond with JSON in this format:
           }
         }
         
-        imageBuffer = Buffer.from(base64Data, 'base64');
+        imageBuffer = sourceImageBuffer;
       }
 
       const jobResponse = await kieAiService.generateImage({
