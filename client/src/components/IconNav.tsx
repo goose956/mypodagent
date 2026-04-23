@@ -15,9 +15,9 @@ export default function IconNav() {
   const [location, setLocation] = useLocation();
 
   return (
-    <div className="border-b bg-background">
+    <div className="border-b bg-background relative z-40 pointer-events-auto">
       <div className="flex items-center justify-center py-6">
-        <div className="flex items-center gap-8">
+        <div className="grid grid-cols-6 gap-8 pointer-events-auto">
           {navItems.map((item) => {
             const isActive = location === item.path;
             const Icon = item.icon;
@@ -28,15 +28,17 @@ export default function IconNav() {
                 type="button"
                 onClick={() => setLocation(item.path)}
                 className={cn(
-                  "group relative flex flex-col items-center gap-2 transition-all duration-300",
+                  "group relative flex flex-col items-center justify-center gap-2 transition-all duration-300",
+                  "min-w-[96px] py-1 cursor-pointer pointer-events-auto",
                   "hover:scale-110",
                   isActive ? "scale-125" : "scale-100"
                 )}
+                aria-label={item.label}
                 data-testid={item.testId}
               >
                 <div
                   className={cn(
-                    "relative flex items-center justify-center rounded-2xl transition-all duration-300",
+                    "relative flex items-center justify-center rounded-2xl transition-all duration-300 cursor-pointer",
                     "hover-elevate active-elevate-2",
                     isActive
                       ? "w-16 h-16 bg-primary text-primary-foreground shadow-lg"
@@ -45,7 +47,7 @@ export default function IconNav() {
                 >
                   <Icon
                     className={cn(
-                      "transition-all duration-300",
+                      "transition-all duration-300 pointer-events-none",
                       isActive ? "w-8 h-8" : "w-6 h-6"
                     )}
                   />
@@ -55,7 +57,7 @@ export default function IconNav() {
                 </div>
                 <span
                   className={cn(
-                    "text-xs font-medium transition-all duration-300",
+                    "text-xs font-medium transition-all duration-300 pointer-events-none",
                     isActive
                       ? "text-primary font-semibold"
                       : "text-muted-foreground group-hover:text-foreground"
