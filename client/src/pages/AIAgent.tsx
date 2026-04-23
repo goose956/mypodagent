@@ -771,12 +771,14 @@ export default function AIAgent() {
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !conversationId) return;
+    if (!file || !conversationId || !conversation?.projectId) return;
 
     setUploadingImage(true);
     try {
       const formData = new FormData();
       formData.append('image', file);
+      formData.append('conversationId', conversationId);
+      formData.append('projectId', conversation.projectId);
 
       const response = await fetch('/api/upload-image', {
         method: 'POST',
@@ -802,12 +804,14 @@ export default function AIAgent() {
 
   const handleSecondImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !conversationId) return;
+    if (!file || !conversationId || !conversation?.projectId) return;
 
     setUploadingSecondImage(true);
     try {
       const formData = new FormData();
       formData.append('image', file);
+      formData.append('conversationId', conversationId);
+      formData.append('projectId', conversation.projectId);
 
       const response = await fetch('/api/upload-image', {
         method: 'POST',
@@ -1573,6 +1577,8 @@ export default function AIAgent() {
                     try {
                       const formData = new FormData();
                       formData.append('image', file);
+                      formData.append('conversationId', conversationId);
+                      formData.append('projectId', conversation?.projectId || '');
                       const response = await fetch('/api/upload-image', {
                         method: 'POST',
                         body: formData

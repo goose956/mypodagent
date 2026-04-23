@@ -52,7 +52,7 @@ export function ChatWindow({ isOpen, onClose, onAttachCanvas, onSaveImage, onSav
   const [inputText, setInputText] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [attachedCanvas, setAttachedCanvas] = useState<string | null>(null)
-  const [selectedModel, setSelectedModel] = useState<string>(forcedModel || '4o-images')
+  const [selectedModel, setSelectedModel] = useState<string>(forcedModel || 'nano-banana')
   const [generationProgress, setGenerationProgress] = useState(0)
   const [currentTaskId, setCurrentTaskId] = useState<string | null>(null)
   const [lockedModel, setLockedModel] = useState<string | null>(null)
@@ -230,6 +230,22 @@ export function ChatWindow({ isOpen, onClose, onAttachCanvas, onSaveImage, onSav
 
         setMessages(prev => [...prev, assistantMessage])
         setAttachedCanvas(null) // Clear attached canvas after use
+        
+        // Auto-save generated image to Media Library (without blocking UI)
+        try {
+          await fetch('/api/images/auto-save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              imageUrl: status.imageUrl,
+              description: 'Auto-saved generated image',
+              prompt: currentPrompt
+            })
+          }).catch(err => console.error('Failed to auto-save image:', err))
+        } catch (error) {
+          console.error('Auto-save error:', error)
+          // Continue anyway - image is still displayed even if save fails
+        }
         
         // Stop polling first
         pollingRef.current = false
@@ -683,7 +699,6 @@ export function ChatWindow({ isOpen, onClose, onAttachCanvas, onSaveImage, onSav
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="nano-banana">Nano Banana (Fast & Efficient)</SelectItem>
-                  <SelectItem value="4o-images">4o Images (GPT-4o Vision)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -738,11 +753,6 @@ export function ChatWindow({ isOpen, onClose, onAttachCanvas, onSaveImage, onSav
                     className="h-3" 
                     data-testid="progress-image-generation"
                   />
-                  {(lockedModel || forcedModel || selectedModel) === '4o-images' && generationProgress < 50 && (
-                    <p className="text-xs text-muted-foreground">
-                      4o Images takes 2-3 minutes to generate high-quality results
-                    </p>
-                  )}
                 </div>
               </div>
             </div>

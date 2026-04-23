@@ -4999,9 +4999,12 @@ Respond with JSON in this format:
     }
   });
 
-  // Simple image upload endpoint for AI Agent
-  app.post("/api/upload-image", upload.single('image'), async (req, res) => {
+  // Simple image upload endpoint for AI Agent - now persists to database
+  app.post("/api/upload-image", requireAuth, upload.single('image'), async (req, res) => {
     try {
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
       if (!req.file) {
         return res.status(400).json({ error: "No image uploaded" });
       }
@@ -5018,8 +5021,31 @@ Respond with JSON in this format:
         req.file.mimetype
       );
       
+      // Extract conversationId and projectId from request body
+      const { conversationId, projectId } = req.body;
+      
+      // If conversationId and projectId are provided, save to agentFiles table
+      let fileId = null;
+      if (conversationId && projectId) {
+        try {
+          const savedFile = await storage.saveAgentFile({
+            projectId,
+            conversationId,
+            fileUrl: imageUrl,
+            fileName: sanitizedFilename,
+            fileType: 'image',
+            metadata: { uploadedBy: userId, uploadedAt: new Date().toISOString() }
+          });
+          fileId = savedFile.id;
+        } catch (dbError) {
+          console.error("Error saving file to database:", dbError);
+          // Continue anyway - the file was uploaded to storage even if DB save failed
+        }
+      }
+      
       res.json({ 
         imageUrl,
+        fileId,
         success: true
       });
     } catch (error) {
@@ -5064,6 +5090,45 @@ Respond with JSON in this format:
     } catch (error) {
       console.error("Error uploading image to temp folder:", error);
       res.status(500).json({ error: "Failed to upload image" });
+    }
+  });
+
+  // Auto-save generated image to database (for persistence across sessions)
+  app.post("/api/images/auto-save", requireAuth, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+      const { imageUrl, description = "Auto-saved generated image", prompt = "" } = req.body;
+      
+      if (!imageUrl) {
+        return res.status(400).json({ error: "Image URL is required" });
+      }
+
+      // Create an image project to track this generated image
+      const project = await storage.createImageProject({
+        referenceImageUrl: imageUrl, // Store the generated image as reference
+        description: description || `Generated from prompt: ${prompt || "no description"}`,
+        generatedImageUrl: imageUrl, // Mark as already generated (not a reference to process)
+        status: 'completed', // Mark as completed since image is already generated
+        aspectRatio: '1:1',
+        metadata: { 
+          autoSaved: true, 
+          prompt, 
+          savedAt: new Date().toISOString() 
+        }
+      }, userId);
+
+      console.log('Auto-saved generated image to project:', project.id);
+
+      res.json({ 
+        success: true,
+        projectId: project.id,
+        message: "Image saved to Media Library"
+      });
+    } catch (error) {
+      console.error("Error auto-saving generated image:", error);
+      res.status(500).json({ error: "Failed to save image" });
     }
   });
 
@@ -5314,9 +5379,9 @@ Respond with JSON in this format:
       const taskId = jobResponse.data.taskId;
       console.log(`${model} task created:`, taskId);
 
-      // Poll for completion - use different timeouts based on model capabilities
+      // Poll for completion - nano-banana completes in 60-90 seconds typically
       let attempts = 0;
-      const maxAttempts = model === '4o-images' ? 180 : 90; // 4o Images needs more time (3 minutes), others 90 seconds
+      const maxAttempts = 120; // Allow up to 2 minutes for completion
       
       while (attempts < maxAttempts) {
         await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
@@ -5670,7 +5735,7 @@ Respond with JSON in this format:
 
   // Start image generation endpoint - returns taskId immediately for progress tracking
   app.post("/api/chat/start-image-generation", requireAuth, async (req, res) => {
-    const { prompt, baseImage, secondImage, model = '4o-images', canvasAspectRatio } = req.body;
+    const { prompt, baseImage, secondImage, model = 'nano-banana', canvasAspectRatio } = req.body;
     
     console.log(`========== START IMAGE GENERATION REQUEST ==========`);
     console.log(`Model: ${model}`);
