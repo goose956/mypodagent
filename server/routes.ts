@@ -9770,30 +9770,41 @@ Return ONLY the blog content in HTML format using basic tags like <h2>, <h3>, <p
                   const loadImageFromUrl = async (imageUrl: string): Promise<Buffer | null> => {
                     try {
                       console.log(`Loading image from URL: ${imageUrl}`);
+                      // If it's already an absolute HTTP URL (e.g. GCS public URL, Media Library), fetch directly
+                      if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+                        const res = await fetch(imageUrl);
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        const buf = Buffer.from(await res.arrayBuffer());
+                        console.log(`Loaded image via direct HTTP, size: ${buf.length} bytes`);
+                        return buf;
+                      }
+                      // Otherwise treat as internal storage path
                       const storagePath = imageUrl.replace(/^\/objects\/public\//, '');
                       const file = await objectStorage.getFileFromPath(storagePath);
                       const [buf] = await file.download();
-                      console.log(`Loaded image buffer, size: ${buf.length} bytes`);
+                      console.log(`Loaded image from storage, size: ${buf.length} bytes`);
                       return buf;
                     } catch (err) {
-                      console.error(`Failed to load image from storage path, trying HTTP fetch: ${err}`);
-                      // Fallback: try fetching as a public HTTP URL
+                      console.error(`Failed primary load for ${imageUrl}: ${err}`);
+                      // Last resort: construct full URL from app domain and fetch
                       try {
                         let appUrl = (process.env.APP_URL || '').replace(/\/$/, '');
                         if (!appUrl && process.env.RAILWAY_PUBLIC_DOMAIN) {
                           appUrl = `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
                         }
-                        const fullUrl = imageUrl.startsWith('http') ? imageUrl : `${appUrl}${imageUrl}`;
-                        console.log(`HTTP fetch attempt: ${fullUrl}`);
-                        const res = await fetch(fullUrl);
-                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                        const buf = Buffer.from(await res.arrayBuffer());
-                        console.log(`Loaded image via HTTP, size: ${buf.length} bytes`);
-                        return buf;
+                        if (appUrl && !imageUrl.startsWith('http')) {
+                          const fullUrl = `${appUrl}${imageUrl}`;
+                          console.log(`Fallback HTTP fetch: ${fullUrl}`);
+                          const res = await fetch(fullUrl);
+                          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                          const buf = Buffer.from(await res.arrayBuffer());
+                          console.log(`Loaded image via fallback HTTP, size: ${buf.length} bytes`);
+                          return buf;
+                        }
                       } catch (fetchErr) {
-                        console.error(`HTTP fetch also failed: ${fetchErr}`);
-                        return null;
+                        console.error(`Fallback fetch also failed: ${fetchErr}`);
                       }
+                      return null;
                     }
                   };
 
