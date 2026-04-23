@@ -9764,92 +9764,61 @@ Return ONLY the blog content in HTML format using basic tags like <h2>, <h3>, <p
                 console.log(`Raw prompt value:`, JSON.stringify(prompt));
                 console.log(`Resolved promptConfig:`, JSON.stringify(promptConfig));
                 try {
-                  console.log(`Sending to GPT-4o: "${promptConfig.prompt}"`);
+                  console.log(`Sending to nano-banana: "${promptConfig.prompt}"`);
                   
-                  // Check if we should use a base image (either from Project Details or direct upload)
+                  // Helper: load any stored image URL into a Buffer (same approach as Canvas)
+                  const loadImageFromUrl = async (imageUrl: string): Promise<Buffer | null> => {
+                    try {
+                      console.log(`Loading image from URL: ${imageUrl}`);
+                      const storagePath = imageUrl.replace(/^\/objects\/public\//, '');
+                      const file = await objectStorage.getFileFromPath(storagePath);
+                      const [buf] = await file.download();
+                      console.log(`Loaded image buffer, size: ${buf.length} bytes`);
+                      return buf;
+                    } catch (err) {
+                      console.error(`Failed to load image from storage path, trying HTTP fetch: ${err}`);
+                      // Fallback: try fetching as a public HTTP URL
+                      try {
+                        const appUrl = (process.env.APP_URL || process.env.RAILWAY_PUBLIC_DOMAIN || '').replace(/\/$/, '');
+                        const fullUrl = imageUrl.startsWith('http') ? imageUrl : `${appUrl}${imageUrl}`;
+                        const res = await fetch(fullUrl);
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        const buf = Buffer.from(await res.arrayBuffer());
+                        console.log(`Loaded image via HTTP, size: ${buf.length} bytes`);
+                        return buf;
+                      } catch (fetchErr) {
+                        console.error(`HTTP fetch also failed: ${fetchErr}`);
+                        return null;
+                      }
+                    }
+                  };
+
+                  // Determine best available image URL (in priority order)
                   let baseImageBuffer: Buffer | undefined;
-                  
-                  // Priority 0: Use image from a previous node in the workflow
+                  let sourceLabel = 'none';
+
+                  // Priority 0: previous node output
                   if (config.usePreviousNode && config.previousNodeId) {
-                    // Find the generated image from the previous node
                     const previousNodeImage = results.images.find((img: any) => img.nodeId === config.previousNodeId);
                     if (previousNodeImage?.url) {
-                      try {
-                        console.log(`Using image from previous node ${config.previousNodeId}: ${previousNodeImage.url}`);
-                        
-                        // Extract storage path from URL
-                        const storagePath = previousNodeImage.url.replace(/^\/objects\/public\//, '');
-                        console.log(`Extracted storage path from previous node: ${storagePath}`);
-                        
-                        const previousImageFile = await objectStorage.getFileFromPath(storagePath);
-                        const [buffer] = await previousImageFile.download();
-                        baseImageBuffer = buffer;
-                        console.log(`Successfully loaded previous node image buffer, size: ${buffer.length} bytes`);
-                      } catch (error) {
-                        console.error('Error loading image from previous node:', error);
-                        // Record error but continue - user should know this failed
-                        results.errors.push({
-                          nodeId: node.id,
-                          type: 'imageCreation',
-                          prompt: promptConfig.prompt,
-                          error: `Failed to load base image from previous node: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                        });
-                      }
-                    } else {
-                      // No image from previous node - this is a configuration error
-                      console.error(`Previous node ${config.previousNodeId} has no generated image - node may have failed or not yet executed`);
-                      results.errors.push({
-                        nodeId: node.id,
-                        type: 'imageCreation',
-                        prompt: promptConfig.prompt,
-                        error: `Previous image node (${config.previousNodeId}) has no output - ensure it executes before this node and generates successfully`,
-                      });
-                      // Continue without base image - let the generation proceed
+                      const buf = await loadImageFromUrl(previousNodeImage.url);
+                      if (buf) { baseImageBuffer = buf; sourceLabel = 'previous node'; }
                     }
                   }
-                  // Priority 1: Direct upload to AI Image node
-                  else if (config.uploadedImage || config.uploadedImagePath || config.baseImagePath) {
-                    const imageUrl = config.uploadedImage || config.uploadedImagePath || config.baseImagePath;
-                    console.log('\n=== DEBUG: Base Image Selection ===');
-                    console.log('config.uploadedImage:', config.uploadedImage);
-                    console.log('config.uploadedImagePath:', config.uploadedImagePath);
-                    console.log('config.baseImagePath:', config.baseImagePath);
-                    console.log('Selected imageUrl:', imageUrl);
-                    try {
-                      console.log(`Loading base image from: ${imageUrl}`);
-                      
-                      // Extract storage path from URL
-                      const storagePath = imageUrl.replace(/^\/objects\/public\//, '');
-                      console.log(`Extracted storage path: ${storagePath}`);
-                      
-                      const uploadedImageFile = await objectStorage.getFileFromPath(storagePath);
-                      const [buffer] = await uploadedImageFile.download();
-                      baseImageBuffer = buffer;
-                      console.log(`Successfully loaded directly uploaded image buffer, size: ${buffer.length} bytes`);
-                    } catch (error) {
-                      console.error('Error loading directly uploaded image:', error);
-                      // Continue without base image if it fails
+                  // Priority 1: directly uploaded image on this node
+                  if (!baseImageBuffer) {
+                    const directUrl = config.uploadedImage || config.uploadedImagePath || config.baseImagePath;
+                    if (directUrl) {
+                      const buf = await loadImageFromUrl(directUrl);
+                      if (buf) { baseImageBuffer = buf; sourceLabel = 'direct upload'; }
                     }
                   }
-                  // Priority 2: Use image from Project Details
-                  else if (config.useProjectImage && results.projectDetails?.imageUrl) {
-                    try {
-                      const imageUrl = results.projectDetails.imageUrl;
-                      console.log(`Using project image as base: ${imageUrl}`);
-                      
-                      // Extract storage path from URL (same pattern as convert-image-to-base64)
-                      const storagePath = imageUrl.replace(/^\/objects\/public\//, '');
-                      console.log(`Extracted storage path: ${storagePath}`);
-                      
-                      const projectImageFile = await objectStorage.getFileFromPath(storagePath);
-                      const [buffer] = await projectImageFile.download();
-                      baseImageBuffer = buffer;
-                      console.log(`Successfully loaded base image buffer, size: ${buffer.length} bytes`);
-                    } catch (error) {
-                      console.error('Error loading project image for base:', error);
-                      // Continue without base image if it fails
-                    }
+                  // Priority 2: project details image (always try if available, regardless of useProjectImage flag)
+                  if (!baseImageBuffer && results.projectDetails?.imageUrl) {
+                    const buf = await loadImageFromUrl(results.projectDetails.imageUrl);
+                    if (buf) { baseImageBuffer = buf; sourceLabel = 'project image'; }
                   }
+                  console.log(`Base image source: ${sourceLabel}`);
                   
                   // Choose model: nano-banana (requires base image) or 4o-images (text-to-image fallback)
                   const imageModel = baseImageBuffer ? 'nano-banana' : '4o-images';
