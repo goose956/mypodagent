@@ -1453,8 +1453,8 @@ function ImageCreationDialog({
   
   // Get current selected image and its source
   const getSelectedImageInfo = () => {
-    if (uploadedImagePath) {
-      return { url: uploadedImage, source: 'Upload' };
+    if (uploadedImage || uploadedImageBase64) {
+      return { url: uploadedImage || uploadedImageBase64, source: 'Upload' };
     }
     if (selectedMediaLibraryImage) {
       return { url: selectedMediaLibraryImage, source: 'Media Library' };
@@ -1545,50 +1545,36 @@ function ImageCreationDialog({
   const projectDetailsNode = nodes?.find(n => n.type === 'projectDetails');
   const projectImage = projectDetailsNode?.data?.imageStoragePath || projectDetailsNode?.data?.imageUrl;
   
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsUploading(true);
-    try {
-      // Read directly as base64 — same as Canvas chat. No server upload needed.
-      // This avoids Railway's ephemeral filesystem losing the file between upload and execution.
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const base64 = ev.target?.result as string || '';
-        setUploadedImage(base64);       // used for UI preview (data URLs work as img src)
-        setUploadedImagePath('');       // no storage path needed
-        setUploadedImageBase64(base64); // used by server during execution
-        setSelectedMediaLibraryImage('');
-        setSelectedProjectFileImage('');
-        setSelectedPrintfulImage('');
-        setSelectedPreviousNodeId('');
-        setUseProjectImage(false);
-        setSelectedProduct(null);
-        setSelectedVariant(null);
-        if (fileInputRef.current) fileInputRef.current.value = '';
-        toast({
-          title: "Image ready",
-          description: `${file.name} will be used as base for AI generation`,
-        });
-        setIsUploading(false);
-      };
-      reader.onerror = () => {
-        toast({ title: "Read failed", description: "Failed to read image file.", variant: "destructive" });
-        setIsUploading(false);
-      };
-      reader.readAsDataURL(file);
-      return; // result handled in callbacks above
-    } catch (error) {
-      console.error('Error reading image:', error);
-      toast({
-        title: "Upload failed",
-        description: "Failed to read image. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const base64 = ev.target?.result as string || '';
+      setUploadedImage(base64);       // used for UI preview (data URLs work as img src)
+      setUploadedImagePath('');       // no storage path needed
+      setUploadedImageBase64(base64); // used by server during execution
+      setSelectedMediaLibraryImage('');
+      setSelectedProjectFileImage('');
+      setSelectedPrintfulImage('');
+      setSelectedPreviousNodeId('');
+      setUseProjectImage(false);
+      setSelectedProduct(null);
+      setSelectedVariant(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       setIsUploading(false);
-    }
+      toast({
+        title: "Image ready",
+        description: `${file.name} will be used as base for AI generation`,
+      });
+    };
+    reader.onerror = () => {
+      setIsUploading(false);
+      toast({ title: "Read failed", description: "Failed to read image file.", variant: "destructive" });
+    };
+    reader.readAsDataURL(file);
   };
 
   const addPrompt = () => {
