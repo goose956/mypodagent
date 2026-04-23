@@ -1359,7 +1359,7 @@ function ImageCreationDialog({
   batchData?: Record<string, string>[];
 }) {
   const [prompts, setPrompts] = useState<string[]>(initialData?.prompts || ['']);
-  const [useProjectImage, setUseProjectImage] = useState(initialData?.useProjectImage || false);
+  const [useProjectImage, setUseProjectImage] = useState(initialData?.useProjectImage ?? true);
   const [uploadedImage, setUploadedImage] = useState<string>('');
   const [uploadedImagePath, setUploadedImagePath] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);

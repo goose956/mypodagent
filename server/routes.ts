@@ -9851,23 +9851,21 @@ Return ONLY the blog content in HTML format using basic tags like <h2>, <h3>, <p
                     }
                   }
                   
-                  // Use nano-banana for workflow image generation
-                  // nano-banana requires a base image — ensure one is configured in the AI Image node
-                  if (!baseImageBuffer) {
-                    throw new Error('nano-banana requires a base image. Please upload a product image in the AI Image node configuration.');
-                  }
+                  // Choose model: nano-banana (requires base image) or 4o-images (text-to-image fallback)
+                  const imageModel = baseImageBuffer ? 'nano-banana' : '4o-images';
 
                   console.log('\n=== DEBUG: Calling Kie.ai generateImage ===');
                   console.log('Prompt being sent:', promptConfig.prompt);
                   console.log('Has base image buffer:', !!baseImageBuffer);
                   console.log('Base image buffer size:', baseImageBuffer?.length || 0);
+                  console.log('Model selected:', imageModel);
                   console.log('Aspect ratio:', config.aspectRatio || results.projectDetails?.aspectRatio || '1:1');
                   console.log('User ID:', userId);
                   console.log('Is Admin:', isAdmin);
                   
                   const response = await kieAiService.generateImage({
                     prompt: promptConfig.prompt,
-                    model: 'nano-banana',
+                    model: imageModel,
                     aspectRatio: config.aspectRatio || results.projectDetails?.aspectRatio || '1:1',
                     imageBuffer: baseImageBuffer,
                     disableProductMockup: true,
@@ -9886,7 +9884,7 @@ Return ONLY the blog content in HTML format using basic tags like <h2>, <h3>, <p
                   let imageUrl: string | null = null;
 
                   while (attempts < maxAttempts) {
-                    const status = await kieAiService.getJobStatus(taskId, 'nano-banana');
+                    const status = await kieAiService.getJobStatus(taskId, imageModel);
                     
                     if (status.data?.successFlag === 1 && status.data?.response?.resultUrls?.[0]) {
                       imageUrl = status.data.response.resultUrls[0];
@@ -9927,10 +9925,10 @@ Return ONLY the blog content in HTML format using basic tags like <h2>, <h3>, <p
                     nodeId: node.id,
                     prompt: promptConfig.prompt,
                     url: publicUrl,
-                    model: 'nano-banana',
+                    model: imageModel,
                   });
 
-                  console.log(`Image generated with nano-banana and saved: ${publicUrl}`);
+                  console.log(`Image generated with ${imageModel} and saved: ${publicUrl}`);
                 } catch (error) {
                   console.error(`Error generating image for prompt "${promptConfig.prompt}":`, error);
                   results.errors.push({
