@@ -1551,49 +1551,39 @@ function ImageCreationDialog({
 
     setIsUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('image', file);
-
-      const response = await fetch('/api/upload-image', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
-
-      if (!response.ok) throw new Error('Upload failed');
-
-      const data = await response.json();
-      setUploadedImage(data.imageUrl);
-      setUploadedImagePath(data.imageUrl);
-      // Also read as base64 so execution never depends on storage availability
+      // Read directly as base64 — same as Canvas chat. No server upload needed.
+      // This avoids Railway's ephemeral filesystem losing the file between upload and execution.
       const reader = new FileReader();
       reader.onload = (ev) => {
-        setUploadedImageBase64(ev.target?.result as string || '');
+        const base64 = ev.target?.result as string || '';
+        setUploadedImage(base64);       // used for UI preview (data URLs work as img src)
+        setUploadedImagePath('');       // no storage path needed
+        setUploadedImageBase64(base64); // used by server during execution
+        setSelectedMediaLibraryImage('');
+        setSelectedProjectFileImage('');
+        setSelectedPrintfulImage('');
+        setSelectedPreviousNodeId('');
+        setUseProjectImage(false);
+        setSelectedProduct(null);
+        setSelectedVariant(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        toast({
+          title: "Image ready",
+          description: `${file.name} will be used as base for AI generation`,
+        });
+        setIsUploading(false);
+      };
+      reader.onerror = () => {
+        toast({ title: "Read failed", description: "Failed to read image file.", variant: "destructive" });
+        setIsUploading(false);
       };
       reader.readAsDataURL(file);
-      // Clear other image sources
-      setSelectedMediaLibraryImage('');
-      setSelectedProjectFileImage('');
-      setSelectedPrintfulImage('');
-      setSelectedPreviousNodeId('');
-      setUseProjectImage(false);
-      setSelectedProduct(null);
-      setSelectedVariant(null);
-      
-      // Reset file input to allow uploading the same file again
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-      
-      toast({
-        title: "Image uploaded",
-        description: `${file.name} will be used as base for AI generation`,
-      });
+      return; // result handled in callbacks above
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error('Error reading image:', error);
       toast({
         title: "Upload failed",
-        description: "Failed to upload image. Please try again.",
+        description: "Failed to read image. Please try again.",
         variant: "destructive",
       });
     } finally {
