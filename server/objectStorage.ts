@@ -570,6 +570,28 @@ export class ObjectStorageService {
     }
   }
 
+  async readFileAsBuffer(storagePath: string): Promise<Buffer> {
+    if (useLocalStorage) {
+      const localFilePath = path.resolve(LOCAL_STORAGE_DIR, "public", storagePath);
+      const expectedPrefix = path.resolve(LOCAL_STORAGE_DIR, "public");
+      if (!localFilePath.startsWith(expectedPrefix)) throw new ObjectNotFoundError();
+      if (!fs.existsSync(localFilePath)) throw new ObjectNotFoundError();
+      return fs.readFileSync(localFilePath);
+    }
+    for (const searchPath of this.getPublicObjectSearchPaths()) {
+      const completePath = `${searchPath}/${storagePath}`;
+      const { bucketName, objectName } = parseObjectPath(completePath);
+      const bucket = objectStorageClient!.bucket(bucketName);
+      const file = bucket.file(objectName);
+      const [exists] = await file.exists();
+      if (exists) {
+        const [buf] = await file.download();
+        return buf;
+      }
+    }
+    throw new ObjectNotFoundError();
+  }
+
   async createZipFromFolder(folderPath: string): Promise<Buffer> {
     try {
       const files = await this.listFiles(folderPath);

@@ -9780,8 +9780,7 @@ Return ONLY the blog content in HTML format using basic tags like <h2>, <h3>, <p
                       }
                       // Otherwise treat as internal storage path
                       const storagePath = imageUrl.replace(/^\/objects\/public\//, '');
-                      const file = await objectStorage.getFileFromPath(storagePath);
-                      const [buf] = await file.download();
+                      const buf = await objectStorage.readFileAsBuffer(storagePath);
                       console.log(`Loaded image from storage, size: ${buf.length} bytes`);
                       return buf;
                     } catch (err) {
