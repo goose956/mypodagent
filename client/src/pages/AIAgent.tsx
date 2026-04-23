@@ -207,6 +207,7 @@ function TriggerGeneration({ message, onUpdate }: {
           const conversionResponse = await fetch('/api/convert-image-to-base64', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({ imageUrl: baseImageData })
           });
           
@@ -227,6 +228,7 @@ function TriggerGeneration({ message, onUpdate }: {
           const conversionResponse = await fetch('/api/convert-image-to-base64', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({ imageUrl: secondImageData })
           });
           
@@ -255,6 +257,7 @@ function TriggerGeneration({ message, onUpdate }: {
         const response = await fetch('/api/chat/start-image-generation', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify(requestBody)
         });
 
@@ -314,10 +317,27 @@ function ImageGenerationProgress({ message, onUpdate, conversationId }: {  messa
   const [timedOut, setTimedOut] = useState(false);
   const pollingRef = useRef<boolean>(true);
   const startTimeRef = useRef<number>(Date.now());
+  const messageRef = useRef(message);
+  const onUpdateRef = useRef(onUpdate);
+  const componentData = message.componentData as { taskId: string; model: string; prompt?: string } | null;
+  const taskId = componentData?.taskId;
+  const model = componentData?.model;
+  const prompt = componentData?.prompt;
 
   useEffect(() => {
-    const componentData = message.componentData as { taskId: string; model: string; prompt?: string } | null;
-    if (!componentData?.taskId) return;
+    messageRef.current = message;
+  }, [message]);
+
+  useEffect(() => {
+    onUpdateRef.current = onUpdate;
+  }, [onUpdate]);
+
+  useEffect(() => {
+    if (!taskId || !model) return;
+
+    pollingRef.current = true;
+    startTimeRef.current = Date.now();
+    setTimedOut(false);
 
     const pollStatus = async () => {
       try {
@@ -331,7 +351,9 @@ function ImageGenerationProgress({ message, onUpdate, conversationId }: {  messa
           return;
         }
 
-        const response = await fetch(`/api/chat/image-generation-status/${componentData.taskId}?model=${componentData.model}&conversationId=${conversationId || ''}`);
+        const response = await fetch(`/api/chat/image-generation-status/${taskId}?model=${model}&conversationId=${conversationId || ''}`, {
+          credentials: 'include'
+        });
         
         if (!response.ok) {
           throw new Error(`Status check failed: ${response.status}`);
@@ -342,10 +364,27 @@ function ImageGenerationProgress({ message, onUpdate, conversationId }: {  messa
         
         if (status.status === 'completed' && status.imageUrl) {
           pollingRef.current = false;
-          onUpdate({
-            ...message,
+
+          // Keep behavior aligned with Canvas chat: auto-save generated images.
+          try {
+            await fetch('/api/images/auto-save', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({
+                imageUrl: status.imageUrl,
+                description: 'Auto-saved generated image',
+                prompt: prompt || 'AI-generated image'
+              })
+            });
+          } catch (error) {
+            console.error('AI Agent auto-save failed:', error);
+          }
+
+          onUpdateRef.current({
+            ...messageRef.current,
             componentType: 'generated_image_result',
-            componentData: { imageUrl: status.imageUrl, prompt: componentData.prompt || 'AI-generated image' }
+            componentData: { imageUrl: status.imageUrl, prompt: prompt || 'AI-generated image' }
           });
         } else if (status.status === 'failed') {
           pollingRef.current = false;
@@ -366,7 +405,7 @@ function ImageGenerationProgress({ message, onUpdate, conversationId }: {  messa
     return () => {
       pollingRef.current = false;
     };
-  }, [message, onUpdate]);
+  }, [conversationId, model, prompt, taskId]);
 
   if (timedOut) {
     return (
@@ -379,8 +418,8 @@ function ImageGenerationProgress({ message, onUpdate, conversationId }: {  messa
           variant="outline"
           size="sm"
           onClick={() => {
-            onUpdate({
-              ...message,
+            onUpdateRef.current({
+              ...messageRef.current,
               content: 'Image generation timed out. You can try again with the same request.',
               componentType: null,
               componentData: null
