@@ -6769,6 +6769,16 @@ export default function PODWorkflows() {
               </div>
             )}
 
+            {/* Execution Log (debug) */}
+            {currentResults?.executionLog && currentResults.executionLog.length > 0 && (
+              <div>
+                <h3 className="font-semibold mb-2 text-muted-foreground text-sm">Execution Log</h3>
+                <pre className="text-xs bg-muted p-3 rounded overflow-x-auto whitespace-pre-wrap break-all">
+                  {(currentResults.executionLog as string[]).join('\n')}
+                </pre>
+              </div>
+            )}
+
             {!currentResults && (
               <p className="text-center text-muted-foreground py-8">
                 No results available

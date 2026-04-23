@@ -9484,6 +9484,7 @@ Return ONLY the blog content in HTML format using basic tags like <h2>, <h3>, <p
         videos: [],
         copies: [],
         errors: [],
+        executionLog: [], // debug log shown in UI results
       };
 
       // Filter out only the configured modules (not source/target handles)
@@ -9753,8 +9754,15 @@ Return ONLY the blog content in HTML format using basic tags like <h2>, <h3>, <p
             console.log('config.promptSource:', config?.promptSource);
             console.log('config.promptColumn:', config?.promptColumn);
             console.log('config.baseImagePath:', config?.baseImagePath);
-            console.log('config.uploadedImage:', config?.uploadedImage);
+            console.log('config.uploadedImage:', config?.uploadedImage ? '(present, length=' + String(config.uploadedImage).length + ')' : 'null');
+            console.log('config.uploadedImageBase64:', config?.uploadedImageBase64 ? '(present, length=' + String(config.uploadedImageBase64).length + ')' : 'null');
             console.log('config.useProjectImage:', config?.useProjectImage);
+
+            results.executionLog.push(`[imageCreation] Node started`);
+            results.executionLog.push(`[imageCreation] uploadedImageBase64: ${config?.uploadedImageBase64 ? 'YES (len=' + String(config.uploadedImageBase64).length + ')' : 'NO'}`);
+            results.executionLog.push(`[imageCreation] uploadedImage: ${config?.uploadedImage ? 'YES (len=' + String(config.uploadedImage).length + ')' : 'NO'}`);
+            results.executionLog.push(`[imageCreation] baseImagePath: ${config?.baseImagePath || 'none'}`);
+            results.executionLog.push(`[imageCreation] usePreviousNode: ${config?.usePreviousNode || false}, previousNodeId: ${config?.previousNodeId || 'none'}`);
             
             if (config?.prompts && Array.isArray(config.prompts)) {
               console.log(`Processing ${config.prompts.length} prompt(s)`);
@@ -9842,9 +9850,11 @@ Return ONLY the blog content in HTML format using basic tags like <h2>, <h3>, <p
                     if (buf) { baseImageBuffer = buf; sourceLabel = 'project image'; }
                   }
                   console.log(`Base image source: ${sourceLabel}`);
+                  results.executionLog.push(`[imageCreation] Base image source: ${sourceLabel} (buffer size: ${baseImageBuffer ? baseImageBuffer.length : 0} bytes)`);
 
                   // Always use nano-banana — never fall back to OpenAI/4o-images
                   if (!baseImageBuffer) {
+                    results.executionLog.push(`[imageCreation] ERROR: No image found in any source`);
                     throw new Error(
                       'No product image found. Please upload a product image in the Project Details node or the AI Image node configuration.'
                     );
@@ -9863,6 +9873,7 @@ Return ONLY the blog content in HTML format using basic tags like <h2>, <h3>, <p
                     disableProductMockup: true,
                   }, userId, isAdmin);
                   console.log('Kie.ai response:', JSON.stringify(response, null, 2));
+                  results.executionLog.push(`[imageCreation] Kie.ai createTask response: code=${response.code}, taskId=${response.data?.taskId || 'NONE'}`);
 
                   // Extract task ID from response
                   const taskId = response.data?.taskId;
@@ -9877,6 +9888,7 @@ Return ONLY the blog content in HTML format using basic tags like <h2>, <h3>, <p
 
                   while (attempts < maxAttempts) {
                     const status = await kieAiService.getJobStatus(taskId, 'nano-banana');
+                    results.executionLog.push(`[imageCreation] Poll #${attempts + 1}: successFlag=${status.data?.successFlag}, progress=${status.data?.progress ?? 'n/a'}`);
                     
                     if (status.data?.successFlag === 1 && status.data?.response?.resultUrls?.[0]) {
                       imageUrl = status.data.response.resultUrls[0];
