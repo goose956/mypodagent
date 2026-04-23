@@ -9985,8 +9985,11 @@ Return ONLY the blog content in HTML format using basic tags like <h2>, <h3>, <p
                       });
                     }
                   }
-                  // Priority 1: Direct upload to Video Creation node (baseImagePath, uploadedImagePath, etc.)
-                  else if (config.baseImagePath || config.uploadedImagePath || config.uploadedImage) {
+                  // Priority 1: Direct base64 upload or URL-based upload to Video Creation node
+                  else if (config.uploadedImageBase64) {
+                    imageToUpload = config.uploadedImageBase64;
+                    console.log(`Using base64 image from video node config`);
+                  } else if (config.baseImagePath || config.uploadedImagePath || config.uploadedImage) {
                     imageToUpload = config.baseImagePath || config.uploadedImagePath || config.uploadedImage;
                     console.log(`Using directly uploaded image for video: ${imageToUpload}`);
                   }
@@ -9998,16 +10001,29 @@ Return ONLY the blog content in HTML format using basic tags like <h2>, <h3>, <p
                   
                   // Upload the image to Kie.ai if we have one
                   if (imageToUpload) {
-                    console.log(`Fetching and uploading image for video generation: ${imageToUpload}`);
+                    console.log(`Fetching and uploading image for video generation`);
                     
                     try {
-                      // Extract storage path from URL (same pattern as AI image generation)
-                      const storagePath = imageToUpload.replace(/^\/objects\/public\//, '');
-                      console.log(`Extracted storage path: ${storagePath}`);
-                      
-                      // Get file from object storage
-                      const projectImageFile = await objectStorage.getFileFromPath(storagePath);
-                      const [buffer] = await projectImageFile.download();
+                      let buffer: Buffer;
+
+                      if (typeof imageToUpload === 'string' && imageToUpload.startsWith('data:')) {
+                        // Base64 data URL — decode directly
+                        const base64Data = imageToUpload.replace(/^data:image\/[a-z]+;base64,/, '');
+                        buffer = Buffer.from(base64Data, 'base64');
+                        console.log(`Decoded base64 image, size: ${buffer.length} bytes`);
+                      } else if (typeof imageToUpload === 'string' && imageToUpload.startsWith('https://')) {
+                        // External URL — fetch directly
+                        const resp = await fetch(imageToUpload);
+                        if (!resp.ok) throw new Error(`Failed to fetch image: ${resp.status}`);
+                        buffer = Buffer.from(await resp.arrayBuffer());
+                        console.log(`Fetched external image, size: ${buffer.length} bytes`);
+                      } else {
+                        // Internal storage path
+                        const storagePath = (imageToUpload as string).replace(/^\/objects\/public\//, '');
+                        console.log(`Loading from object storage path: ${storagePath}`);
+                        buffer = await objectStorage.readFileAsBuffer(storagePath);
+                        console.log(`Loaded from storage, size: ${buffer.length} bytes`);
+                      }
                       console.log(`Successfully loaded image buffer, size: ${buffer.length} bytes`);
                       
                       // Process image to match video aspect ratio (prevents cropping)
