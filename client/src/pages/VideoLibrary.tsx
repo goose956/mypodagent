@@ -478,9 +478,8 @@ function ImageCard({ project }: { project: ImageProject }) {
     if (project.generatedImageUrl) {
       // Create a temporary link to trigger download
       const link = document.createElement('a');
-      link.href = project.generatedImageUrl;
+      link.href = `/api/image-projects/${project.id}/download`;
       link.download = `image-${project.id}.jpg`;
-      link.target = '_blank';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

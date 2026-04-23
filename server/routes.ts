@@ -1042,6 +1042,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Download image project file through backend to avoid broken direct links
+  app.get("/api/image-projects/:id/download", requireAuth, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+      const project = await storage.getImageProject(req.params.id, userId);
+      if (!project || !project.generatedImageUrl) {
+        return res.status(404).json({ error: "Image not found" });
+      }
+
+      const sourceUrl = project.generatedImageUrl;
+      const downloadName = `image-${project.id}.png`;
+
+      const tryStreamFromObjectStorage = async (rawPath: string): Promise<boolean> => {
+        const normalizedPath = rawPath
+          .replace(/^https?:\/\/[^/]+/i, '')
+          .replace(/^\/objects\/public\//, '')
+          .replace(/^\/objects\//, '');
+
+        if (!normalizedPath || normalizedPath.includes('..')) {
+          return false;
+        }
+
+        try {
+          const file = await objectStorage.getFileFromPath(normalizedPath);
+          res.setHeader('Content-Disposition', `attachment; filename="${downloadName}"`);
+          await objectStorage.downloadObject(file, res, 0);
+          return true;
+        } catch {
+          return false;
+        }
+      };
+
+      // Prefer object storage paths when possible
+      if (sourceUrl.startsWith('/objects/')) {
+        const streamed = await tryStreamFromObjectStorage(sourceUrl);
+        if (streamed) return;
+      }
+
+      if (sourceUrl.startsWith('http://') || sourceUrl.startsWith('https://')) {
+        const pathname = new URL(sourceUrl).pathname;
+        if (pathname.startsWith('/objects/')) {
+          const streamed = await tryStreamFromObjectStorage(pathname);
+          if (streamed) return;
+        }
+
+        // Fallback for legacy records that still store external URLs
+        const externalResponse = await fetch(sourceUrl);
+        if (!externalResponse.ok) {
+          return res.status(404).json({ error: "File not available" });
+        }
+
+        const buffer = Buffer.from(await externalResponse.arrayBuffer());
+        const contentType = externalResponse.headers.get('content-type') || 'application/octet-stream';
+        res.setHeader('Content-Type', contentType);
+        res.setHeader('Content-Disposition', `attachment; filename="${downloadName}"`);
+        return res.send(buffer);
+      }
+
+      // Last attempt: treat as raw object storage path
+      const streamed = await tryStreamFromObjectStorage(sourceUrl);
+      if (streamed) return;
+
+      return res.status(404).json({ error: "File not available" });
+    } catch (error) {
+      console.error("Error downloading image project:", error);
+      return res.status(500).json({ error: "Failed to download image" });
+    }
+  });
+
   // Get all image projects
   app.get("/api/image-projects", requireAuth, async (req, res) => {
     try {
