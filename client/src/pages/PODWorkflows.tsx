@@ -1362,6 +1362,7 @@ function ImageCreationDialog({
   const [useProjectImage, setUseProjectImage] = useState(initialData?.useProjectImage || false);
   const [uploadedImage, setUploadedImage] = useState<string>('');
   const [uploadedImagePath, setUploadedImagePath] = useState<string>('');
+  const [uploadedImageBase64, setUploadedImageBase64] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
   const [aspectRatio, setAspectRatio] = useState(initialData?.aspectRatio || '1:1');
   const [imageSource, setImageSource] = useState<'upload' | 'media' | 'project' | 'printful' | 'previousNode'>('upload');
@@ -1479,6 +1480,7 @@ function ImageCreationDialog({
   const removeBaseImage = () => {
     setUploadedImage('');
     setUploadedImagePath('');
+    setUploadedImageBase64('');
     setSelectedMediaLibraryImage('');
     setSelectedProjectFileImage('');
     setSelectedPrintfulImage('');
@@ -1515,6 +1517,7 @@ function ImageCreationDialog({
       setUseProjectImage(initialData?.useProjectImage || false);
       setUploadedImage(initialData?.uploadedImage || '');
       setUploadedImagePath(initialData?.uploadedImagePath || '');
+      setUploadedImageBase64(initialData?.uploadedImageBase64 || '');
       setAspectRatio(initialData?.aspectRatio || '1:1');
       setSelectedMediaLibraryImage('');
       setSelectedProjectFileImage('');
@@ -1562,6 +1565,12 @@ function ImageCreationDialog({
       const data = await response.json();
       setUploadedImage(data.imageUrl);
       setUploadedImagePath(data.imageUrl);
+      // Also read as base64 so execution never depends on storage availability
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setUploadedImageBase64(ev.target?.result as string || '');
+      };
+      reader.readAsDataURL(file);
       // Clear other image sources
       setSelectedMediaLibraryImage('');
       setSelectedProjectFileImage('');
@@ -1676,6 +1685,7 @@ function ImageCreationDialog({
       projectImagePath: useProjectImage ? projectImage : undefined,
       uploadedImage,
       uploadedImagePath,
+      uploadedImageBase64: uploadedImageBase64 || undefined,
       selectedMediaLibraryImage,
       selectedProjectFileImage,
       selectedPrintfulImage,

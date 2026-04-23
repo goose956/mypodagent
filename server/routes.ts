@@ -9822,10 +9822,19 @@ Return ONLY the blog content in HTML format using basic tags like <h2>, <h3>, <p
                   }
                   // Priority 1: directly uploaded image on this node
                   if (!baseImageBuffer) {
-                    const directUrl = config.uploadedImage || config.uploadedImagePath || config.baseImagePath;
-                    if (directUrl) {
-                      const buf = await loadImageFromUrl(directUrl);
-                      if (buf) { baseImageBuffer = buf; sourceLabel = 'direct upload'; }
+                    // First try base64 (stored directly in node config — most reliable, no storage dependency)
+                    if (config.uploadedImageBase64) {
+                      const base64Data = (config.uploadedImageBase64 as string).replace(/^data:image\/[a-z]+;base64,/, '');
+                      baseImageBuffer = Buffer.from(base64Data, 'base64');
+                      sourceLabel = 'base64 upload';
+                      console.log(`Using base64 image from node config, size: ${baseImageBuffer.length} bytes`);
+                    } else {
+                      // Fall back to URL-based loading
+                      const directUrl = config.uploadedImage || config.uploadedImagePath || config.baseImagePath;
+                      if (directUrl) {
+                        const buf = await loadImageFromUrl(directUrl);
+                        if (buf) { baseImageBuffer = buf; sourceLabel = 'direct upload'; }
+                      }
                     }
                   }
                   // Priority 2: project details image (always try if available, regardless of useProjectImage flag)
