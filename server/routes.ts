@@ -9779,8 +9779,12 @@ Return ONLY the blog content in HTML format using basic tags like <h2>, <h3>, <p
                       console.error(`Failed to load image from storage path, trying HTTP fetch: ${err}`);
                       // Fallback: try fetching as a public HTTP URL
                       try {
-                        const appUrl = (process.env.APP_URL || process.env.RAILWAY_PUBLIC_DOMAIN || '').replace(/\/$/, '');
+                        let appUrl = (process.env.APP_URL || '').replace(/\/$/, '');
+                        if (!appUrl && process.env.RAILWAY_PUBLIC_DOMAIN) {
+                          appUrl = `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
+                        }
                         const fullUrl = imageUrl.startsWith('http') ? imageUrl : `${appUrl}${imageUrl}`;
+                        console.log(`HTTP fetch attempt: ${fullUrl}`);
                         const res = await fetch(fullUrl);
                         if (!res.ok) throw new Error(`HTTP ${res.status}`);
                         const buf = Buffer.from(await res.arrayBuffer());
@@ -9819,22 +9823,22 @@ Return ONLY the blog content in HTML format using basic tags like <h2>, <h3>, <p
                     if (buf) { baseImageBuffer = buf; sourceLabel = 'project image'; }
                   }
                   console.log(`Base image source: ${sourceLabel}`);
-                  
-                  // Choose model: nano-banana (requires base image) or 4o-images (text-to-image fallback)
-                  const imageModel = baseImageBuffer ? 'nano-banana' : '4o-images';
 
-                  console.log('\n=== DEBUG: Calling Kie.ai generateImage ===');
+                  // Always use nano-banana — never fall back to OpenAI/4o-images
+                  if (!baseImageBuffer) {
+                    throw new Error(
+                      'No product image found. Please upload a product image in the Project Details node or the AI Image node configuration.'
+                    );
+                  }
+
+                  console.log('\n=== DEBUG: Calling Kie.ai generateImage (nano-banana) ===');
                   console.log('Prompt being sent:', promptConfig.prompt);
-                  console.log('Has base image buffer:', !!baseImageBuffer);
-                  console.log('Base image buffer size:', baseImageBuffer?.length || 0);
-                  console.log('Model selected:', imageModel);
+                  console.log('Base image buffer size:', baseImageBuffer.length);
                   console.log('Aspect ratio:', config.aspectRatio || results.projectDetails?.aspectRatio || '1:1');
-                  console.log('User ID:', userId);
-                  console.log('Is Admin:', isAdmin);
-                  
+
                   const response = await kieAiService.generateImage({
                     prompt: promptConfig.prompt,
-                    model: imageModel,
+                    model: 'nano-banana',
                     aspectRatio: config.aspectRatio || results.projectDetails?.aspectRatio || '1:1',
                     imageBuffer: baseImageBuffer,
                     disableProductMockup: true,
@@ -9853,7 +9857,7 @@ Return ONLY the blog content in HTML format using basic tags like <h2>, <h3>, <p
                   let imageUrl: string | null = null;
 
                   while (attempts < maxAttempts) {
-                    const status = await kieAiService.getJobStatus(taskId, imageModel);
+                    const status = await kieAiService.getJobStatus(taskId, 'nano-banana');
                     
                     if (status.data?.successFlag === 1 && status.data?.response?.resultUrls?.[0]) {
                       imageUrl = status.data.response.resultUrls[0];
@@ -9894,10 +9898,11 @@ Return ONLY the blog content in HTML format using basic tags like <h2>, <h3>, <p
                     nodeId: node.id,
                     prompt: promptConfig.prompt,
                     url: publicUrl,
-                    model: imageModel,
+                    model: 'nano-banana',
                   });
 
-                  console.log(`Image generated with ${imageModel} and saved: ${publicUrl}`);
+                  console.log(`Image generated with nano-banana and saved: ${publicUrl}`);
+                  console.log('=================================================');
                 } catch (error) {
                   console.error(`Error generating image for prompt "${promptConfig.prompt}":`, error);
                   results.errors.push({
