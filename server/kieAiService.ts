@@ -534,13 +534,42 @@ export class KieAiService {
       return normalizedResult;
     }
     
-    // For other models (nano-banana, veo), keep existing logic
-    // Normalize response format differences between models
+    // Normalize nano-banana /jobs/recordInfo response
+    // It uses: state ("success"/"fail"/"running"), resultJson (stringified {resultUrls:[...]})
+    // Convert to the successFlag/resultUrls format the polling code expects
+    if (model === 'nano-banana') {
+      const state = result.data?.state;
+      let successFlag = 0; // 0 = still generating
+      if (state === 'success') successFlag = 1;
+      else if (state === 'fail' || state === 'failed') successFlag = 2;
+
+      let resultUrls: string[] = [];
+      if (result.data?.resultJson) {
+        try {
+          const parsed = typeof result.data.resultJson === 'string'
+            ? JSON.parse(result.data.resultJson)
+            : result.data.resultJson;
+          resultUrls = parsed.resultUrls || [];
+        } catch (e) { /* ignore parse errors */ }
+      }
+
+      return {
+        code: result.code,
+        msg: result.msg || result.message,
+        data: {
+          taskId: result.data?.taskId,
+          successFlag,
+          errorMessage: result.data?.failMsg || result.data?.errorMessage,
+          response: { resultUrls },
+        },
+      };
+    }
+
+    // For veo and other models, keep existing logic
     if (result.data?.response?.result_urls) {
-      // 4o Images uses 'result_urls', convert to 'resultUrls' for consistency
       result.data.response.resultUrls = result.data.response.result_urls;
     }
-    
+
     return result;
   }
 
