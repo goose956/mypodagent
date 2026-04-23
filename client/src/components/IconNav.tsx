@@ -1,5 +1,5 @@
 import { FolderKanban, Layers, Library, Lightbulb, Workflow, Database } from 'lucide-react';
-import { Link, useLocation } from 'wouter';
+import { useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -12,7 +12,7 @@ const navItems = [
 ];
 
 export default function IconNav() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
 
   return (
     <div className="border-b bg-background">
@@ -23,46 +23,47 @@ export default function IconNav() {
             const Icon = item.icon;
 
             return (
-              <Link key={item.path} href={item.path}>
-                <button
+              <button
+                key={item.path}
+                type="button"
+                onClick={() => setLocation(item.path)}
+                className={cn(
+                  "group relative flex flex-col items-center gap-2 transition-all duration-300",
+                  "hover:scale-110",
+                  isActive ? "scale-125" : "scale-100"
+                )}
+                data-testid={item.testId}
+              >
+                <div
                   className={cn(
-                    "group relative flex flex-col items-center gap-2 transition-all duration-300",
-                    "hover:scale-110",
-                    isActive ? "scale-125" : "scale-100"
+                    "relative flex items-center justify-center rounded-2xl transition-all duration-300",
+                    "hover-elevate active-elevate-2",
+                    isActive
+                      ? "w-16 h-16 bg-primary text-primary-foreground shadow-lg"
+                      : "w-12 h-12 bg-muted text-muted-foreground group-hover:bg-muted/80"
                   )}
-                  data-testid={item.testId}
                 >
-                  <div
+                  <Icon
                     className={cn(
-                      "relative flex items-center justify-center rounded-2xl transition-all duration-300",
-                      "hover-elevate active-elevate-2",
-                      isActive
-                        ? "w-16 h-16 bg-primary text-primary-foreground shadow-lg"
-                        : "w-12 h-12 bg-muted text-muted-foreground group-hover:bg-muted/80"
+                      "transition-all duration-300",
+                      isActive ? "w-8 h-8" : "w-6 h-6"
                     )}
-                  >
-                    <Icon
-                      className={cn(
-                        "transition-all duration-300",
-                        isActive ? "w-8 h-8" : "w-6 h-6"
-                      )}
-                    />
-                    {isActive && (
-                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-primary-foreground animate-pulse" />
-                    )}
-                  </div>
-                  <span
-                    className={cn(
-                      "text-xs font-medium transition-all duration-300",
-                      isActive
-                        ? "text-primary font-semibold"
-                        : "text-muted-foreground group-hover:text-foreground"
-                    )}
-                  >
-                    {item.label}
-                  </span>
-                </button>
-              </Link>
+                  />
+                  {isActive && (
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-primary-foreground animate-pulse" />
+                  )}
+                </div>
+                <span
+                  className={cn(
+                    "text-xs font-medium transition-all duration-300",
+                    isActive
+                      ? "text-primary font-semibold"
+                      : "text-muted-foreground group-hover:text-foreground"
+                  )}
+                >
+                  {item.label}
+                </span>
+              </button>
             );
           })}
         </div>
