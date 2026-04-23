@@ -6651,13 +6651,8 @@ export default function PODWorkflows() {
                                 Copy
                               </Button>
                             </div>
-                            <div className="bg-muted p-2 rounded text-sm">
-                              {copy.copy.split('\n').filter((line: string) => line.trim()).map((line: string, lineIndex: number, arr: string[]) => (
-                                <span key={lineIndex}>
-                                  {line}
-                                  {lineIndex < arr.length - 1 && <br />}
-                                </span>
-                              ))}
+                            <div className="bg-muted p-2 rounded text-sm font-mono whitespace-pre-wrap">
+                              {copy.copy.split('\n').filter((line: string) => line.trim()).join('<br><br>')}
                             </div>
                           </div>
                           
@@ -6755,15 +6750,7 @@ export default function PODWorkflows() {
               </div>
             )}
 
-            {/* Execution Log (debug) */}
-            {currentResults?.executionLog && currentResults.executionLog.length > 0 && (
-              <div>
-                <h3 className="font-semibold mb-2 text-muted-foreground text-sm">Execution Log</h3>
-                <pre className="text-xs bg-muted p-3 rounded overflow-x-auto whitespace-pre-wrap break-all">
-                  {(currentResults.executionLog as string[]).join('\n')}
-                </pre>
-              </div>
-            )}
+
 
             {!currentResults && (
               <p className="text-center text-muted-foreground py-8">
