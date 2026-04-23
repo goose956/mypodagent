@@ -9851,9 +9851,12 @@ Return ONLY the blog content in HTML format using basic tags like <h2>, <h3>, <p
                     }
                   }
                   
-                  // CRITICAL: Always use GPT-4o exclusively for workflow execution
-                  // We ignore any model value from config and hardcode 'gpt-4o'
-                  // KieAiService will reject non-GPT-4o models as additional safety layer
+                  // Use nano-banana for workflow image generation
+                  // nano-banana requires a base image — ensure one is configured in the AI Image node
+                  if (!baseImageBuffer) {
+                    throw new Error('nano-banana requires a base image. Please upload a product image in the AI Image node configuration.');
+                  }
+
                   console.log('\n=== DEBUG: Calling Kie.ai generateImage ===');
                   console.log('Prompt being sent:', promptConfig.prompt);
                   console.log('Has base image buffer:', !!baseImageBuffer);
@@ -9864,10 +9867,10 @@ Return ONLY the blog content in HTML format using basic tags like <h2>, <h3>, <p
                   
                   const response = await kieAiService.generateImage({
                     prompt: promptConfig.prompt,
-                    model: 'gpt-4o', // Hardcoded - config model value is ignored
-                    aspectRatio: config.aspectRatio || results.projectDetails?.aspectRatio || '1:1', // Use AI Image node's aspect ratio first, then project's
-                    imageBuffer: baseImageBuffer, // Pass the base image if available
-                    disableProductMockup: true, // Workflow needs raw designs, not product mockups
+                    model: 'nano-banana',
+                    aspectRatio: config.aspectRatio || results.projectDetails?.aspectRatio || '1:1',
+                    imageBuffer: baseImageBuffer,
+                    disableProductMockup: true,
                   }, userId, isAdmin);
                   console.log('Kie.ai response:', JSON.stringify(response, null, 2));
 
@@ -9883,7 +9886,7 @@ Return ONLY the blog content in HTML format using basic tags like <h2>, <h3>, <p
                   let imageUrl: string | null = null;
 
                   while (attempts < maxAttempts) {
-                    const status = await kieAiService.getJobStatus(taskId, 'gpt-4o');
+                    const status = await kieAiService.getJobStatus(taskId, 'nano-banana');
                     
                     if (status.data?.successFlag === 1 && status.data?.response?.resultUrls?.[0]) {
                       imageUrl = status.data.response.resultUrls[0];
@@ -9924,10 +9927,10 @@ Return ONLY the blog content in HTML format using basic tags like <h2>, <h3>, <p
                     nodeId: node.id,
                     prompt: promptConfig.prompt,
                     url: publicUrl,
-                    model: 'gpt-4o',
+                    model: 'nano-banana',
                   });
 
-                  console.log(`Image generated with GPT-4o and saved: ${publicUrl}`);
+                  console.log(`Image generated with nano-banana and saved: ${publicUrl}`);
                 } catch (error) {
                   console.error(`Error generating image for prompt "${promptConfig.prompt}":`, error);
                   results.errors.push({
@@ -10469,10 +10472,10 @@ Write the 5 bullet points now:`;
                   }
                 }
                 
-                // Generate image using GPT-4o
+                // Generate image using nano-banana
                 const response = await kieAiService.generateImage({
                   prompt: config.prompt,
-                  model: 'gpt-4o',
+                  model: 'nano-banana',
                   aspectRatio: config.aspectRatio || results.projectDetails?.aspectRatio || '1:1',
                   imageBuffer: baseImageBuffer,
                   disableProductMockup: true,
@@ -10489,7 +10492,7 @@ Write the 5 bullet points now:`;
                 let imageUrl: string | null = null;
                 
                 while (attempts < maxAttempts) {
-                  const status = await kieAiService.getJobStatus(taskId, 'gpt-4o');
+                  const status = await kieAiService.getJobStatus(taskId, 'nano-banana');
                   
                   if (status.data?.successFlag === 1 && status.data?.response?.resultUrls?.[0]) {
                     imageUrl = status.data.response.resultUrls[0];
@@ -11199,7 +11202,7 @@ Write the 5 bullet points now:`;
       // Generate the edited image using the edit instructions as the prompt
       const response = await kieAiService.generateImage({
         prompt: editInstructions,
-        model: 'gpt-4o',
+        model: 'nano-banana',
         aspectRatio: '1:1',
         imageBuffer: baseImageBuffer,
         disableProductMockup: true,
@@ -11216,7 +11219,7 @@ Write the 5 bullet points now:`;
       let imageUrl: string | null = null;
       
       while (attempts < maxAttempts) {
-        const status = await kieAiService.getJobStatus(taskId, 'gpt-4o');
+        const status = await kieAiService.getJobStatus(taskId, 'nano-banana');
         
         if (status.data?.successFlag === 1 && status.data?.response?.resultUrls?.[0]) {
           imageUrl = status.data.response.resultUrls[0];
@@ -11814,10 +11817,10 @@ Write the 5 bullet points now:`;
 
       console.log(`[Edit Workflow Image] Combined prompt: ${improvedPrompt}`);
 
-      // Generate improved image using GPT-4o with base image
+      // Generate improved image using nano-banana with base image
       const response = await kieAiService.generateImage({
         prompt: improvedPrompt,
-        model: 'gpt-4o',
+        model: 'nano-banana',
         aspectRatio: '1:1',
         imageBuffer: imageBuffer,
         disableProductMockup: true,
@@ -11836,7 +11839,7 @@ Write the 5 bullet points now:`;
       let newImageUrl: string | null = null;
 
       while (attempts < maxAttempts) {
-        const status = await kieAiService.getJobStatus(taskId, 'gpt-4o');
+        const status = await kieAiService.getJobStatus(taskId, 'nano-banana');
         
         if (status.data?.successFlag === 1 && status.data?.response?.resultUrls?.[0]) {
           newImageUrl = status.data.response.resultUrls[0];
