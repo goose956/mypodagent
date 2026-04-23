@@ -17,7 +17,7 @@ export default function IconNav() {
   return (
     <div className="border-b bg-background relative z-40 pointer-events-auto">
       <div className="flex items-center justify-center py-6">
-        <div className="grid grid-cols-6 gap-8 pointer-events-auto">
+        <div className="flex flex-wrap items-start justify-center gap-8 pointer-events-auto">
           {navItems.map((item) => {
             const isActive = location === item.path;
             const Icon = item.icon;
@@ -28,21 +28,22 @@ export default function IconNav() {
                 type="button"
                 onClick={() => setLocation(item.path)}
                 className={cn(
-                  "group relative flex flex-col items-center justify-center gap-2 transition-all duration-300",
-                  "min-w-[96px] py-1 cursor-pointer pointer-events-auto",
+                  "group relative flex w-[110px] flex-col items-center justify-center gap-2 py-1",
+                  "cursor-pointer pointer-events-auto select-none",
+                  "transition-all duration-300",
                   "hover:scale-110",
                   isActive ? "scale-125" : "scale-100"
                 )}
+                style={{ cursor: 'pointer' }}
                 aria-label={item.label}
                 data-testid={item.testId}
               >
                 <div
                   className={cn(
                     "relative flex items-center justify-center rounded-2xl transition-all duration-300 cursor-pointer",
-                    "hover-elevate active-elevate-2",
                     isActive
                       ? "w-16 h-16 bg-primary text-primary-foreground shadow-lg"
-                      : "w-12 h-12 bg-muted text-muted-foreground group-hover:bg-muted/80"
+                      : "w-12 h-12 bg-muted text-muted-foreground group-hover:bg-muted/80 group-hover:shadow-sm"
                   )}
                 >
                   <Icon
